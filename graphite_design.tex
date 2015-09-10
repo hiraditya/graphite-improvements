@@ -1,0 +1,106 @@
+\abstract{
+  For the past few years graphite framework, which brought polyhedral optimizations
+  to gcc, was largely unmaintained. We made importatnt designed changes and fixed bugs accumulated over
+  the past. The transition from cloog to isl left dead code in multiple places, and made some optimizations
+  redundant. We cleaned up that code, so graphite codebase became smaller after recent changes.
+  We enabled graphite to detect wider range of loops which it can optimize and discard
+  difficult-to-optimize loops in a much faster way. We have also brought demand driven optimization
+  into the graphite framework, since we want it to spend extra time in loops which matters,
+  in the presence of profile information. 
+}
+
+
+
+\section{scop detection}
+The scope of the polyhedral program analysis and manipulation is a sequence of loop
+nests with constant strides and affine bounds. It includes non-perfectly nested loops
+and conditionals with boolean expressions of affine inequalities.
+The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
+(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \ref{Girbal, Bondhugula, Trifunovic}
+
+In the graphite framework we do not include statements outside before the first and after the last loop in an SESE.
+So in that sense, SCoP detected by this function may not be maximal.
+
+GIMPLE statements belonging to the SCoP should not contain calls to functions with
+side effects (pure and const function calls are allowed) and the only memory references
+that are allowed are accesses through arrays with affine subscript functions.
+
+To make the scop detection simpler we canonicalize the loops into a closed SSA form.
+The previous graphite framework detected scop by analyzing an SESE. That approach resulted in a highly recursive structure
+with redundancies at several places and hence, increase in compile time. In the new framework, we try to discard irrelevant
+regions as fast as we can. Essentially,
+\begin{enumerate}
+\item Discard functions with less than two loops: Since we are mostly intersted in optimizing loop nests
+or loop which has at least one sibling.
+\item Start the scop detection from a CFG node which begins from a loop header.
+\item Break the SCoP at a point where we find a statement which cannot be represented by graphite.
+\item 
+\end{enumerate}
+
+
+\section{Removing limit_scops}
+The functionality limit_scop was added
+as an intermediate step to discard the loops which graphite could not
+handle. Removing limit_scop required handling of different cases of loops and
+surrounding code.  The scop is now larger so most test cases required 'number of
+scops detected' to be fixed. By increasing the size of scop we can now optimize
+loops which are 'siblings' of each other. This could enable loop fusion on a
+number of loops.
+
+\section{Fixing accumulated bugs}
+For the past few years graphite was not actively maintained and accumulated bugs. We also believe that
+moving from cloog to isl might have exposed a few corner cases of the initial implementation of graphite.
+Even the graphite-identity was not working. graphite-identity is not intended to change the functionality
+of the program. So the first step was to get graphite-identity to work. Second was to remove optimizations which
+were either redundant because of transition to isl, or were generating incorrect code. Also, the feedback that we
+got from the community was that graphite needs to operate under one flag otherwise users might not use it effectively.
+The onus of generating optimal code should be on the framework and it should decide the best code to generate
+for optimal data locality. So we deprecated all the flags except -fgraphite-identity and -floop-nest-optimize.
+We kept -fgraphite-identity for debugging purposes only.
+
+\section{Limiting the number of computations done in ISL}
+Newer releasese of ISL have a way to bail out when total number of computations reach a limit.
+This feature is very useful because this way we can limit the overhead in compile time. This also
+allows greater control over optimization when loops are not too important. We provided a flag so
+that users can tune it as required.
+
+\section{Implementing loop fusion}
+
+\section{Enabling graphite with profile guided optimization}
+Although we have tried to redesign graphite for faster compile time, it still has some overhead.
+Experimental results show an average of {} overhead in compile time.
+Because of that, we would like to enable this for cases when compile time is not of much concern,
+e.g. benchmarking, iterative compilation with feedback.
+
+We have also enabled graphite to spend extra time on important loops. This can be done by tuning
+isl-timeout programmatically based on the hotness of the loop. We believe expensive optimizations
+can have the option to be demand driven so that compiler spends time on program portions which matters
+most from the performance perspective. \ref{Duesterwald}
+
+
+\section{Experimental Results}
+
+\section{Conclusion and Future Work}
+
+
+\references{}
+
+S. Girbal, N. Vasilache, C. Bastoul, A. Cohen, D. Parello, M. Sigler, and O. Temam.
+Semi-automatic composition of loop transformations for deep parallelism and memory
+hierarchies. Intl. J. of Parallel Programming, 34(3):261–317, June 2006. Special issue on
+Microgrids
+
+
+U. Bondhugula, A. Hartono, J. Ramanujam, and P. Sadayappan. A practical automatic
+polyhedral parallelization and locality optimization system. In ACM SIGPLAN Conf. on
+Programming Languages Design and Implementation (PLDI’08), Tucson, AZ, USA, June
+2008.
+
+Trifunovic, Konrad, et al. "Graphite two years after: First lessons learned
+from real-world polyhedral compilation."
+GCC Research Opportunities Workshop (GROW'10). 2010.
+
+
+Duesterwald, Evelyn, Rajiv Gupta, and Mary Lou Soffa. "Demand-driven computation of interprocedural data flow." Proceedings of the 22nd ACM SIGPLAN-SIGACT symposium on Principles of programming languages. ACM, 1995.
+http://www.cs.ucr.edu/~gupta/research/Publications/Comp/popl95.pdf
+
