@@ -1,3 +1,5 @@
+\title{Enabling Polyhedral optimization for wide use}
+
 \abstract{
   For the past few years graphite framework, which brought polyhedral optimizations
   to gcc, was largely unmaintained. We made importatnt designed changes and fixed bugs accumulated over
@@ -9,14 +11,42 @@
   in the presence of profile information. 
 }
 
+\section{Goals}
+Enabling widespread usage of graphite by having one flag to the end user.
+Fixing accumulated bugs.
+Substantial improvements on several benchmarks with no significant regression.
+Propose enabling of graphite by default under one optimization flag.
+Limiting the number of computations to reduce compile time.
 
-
-\section{scop detection}
+\section{faster scop detection for selecting relevant loop nests}
 The scope of the polyhedral program analysis and manipulation is a sequence of loop
 nests with constant strides and affine bounds. It includes non-perfectly nested loops
 and conditionals with boolean expressions of affine inequalities.
 The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
 (CFG) that satisfies those constraints is called a Static Control Part (SCoP). \ref{Girbal, Bondhugula, Trifunovic}
+
+Current algorithm for SCoP detection in graphite was based on dominator tree where a tree (CFG) traversal is required
+for analyzing an SESE. The tree traversal is linear in the number of basic blocks and SCoP detection is linear in
+number of instructions. This is reasonably fast but it utilizes a generic infrastructure of SESE. With regards to
+polyhedral optimization we are only interested in subtrees with loops. So it makes more sense to utilize higher level
+semantics of CFG e.g., loop tree. Since higher level abstractions contain more statments, discarding them early
+makes algorithm converge faster.
+
+The new algorithm is geared towards tree traversal on loop structure. The algorithm is linear in number of loops
+which is much faster than the previous algorithm. The algorithm is based on a very simple structural property of loop
+tree.
+
+LoopTree = LoopNest
+LoopNest = LoopTree; nested loop
+
+Briefly, we start the traversal at a loop-nest and analyze it recursively for validity. Once a valid loop is
+found we find a valid adjacent loop. If an adjacent loop is found then we merge both loop nests
+other wise we form a SCoP and resume the algorithm from the adjacent loop nest. The data structure to represent an SESE
+is an ordered pair of edges (entry, exit). Choosing a simple data structure allows us to extend a SCoP in both the
+directions. With this approach, the number of instructions to be analyzed for validity reduces to a minimal set.
+We start by analyzing those statements which are inside a loop, because validity of those statements is
+necessary for the validity of loop. The statements outside the loop nest can be just excluded from the
+SESE if they are not valid.
 
 In the graphite framework we do not include statements outside before the first and after the last loop in an SESE.
 So in that sense, SCoP detected by this function may not be maximal.
@@ -37,7 +67,6 @@ or loop which has at least one sibling.
 \item 
 \end{enumerate}
 
-
 \section{Removing limit_scops}
 The functionality limit_scop was added
 as an intermediate step to discard the loops which graphite could not
@@ -46,6 +75,22 @@ surrounding code.  The scop is now larger so most test cases required 'number of
 scops detected' to be fixed. By increasing the size of scop we can now optimize
 loops which are 'siblings' of each other. This could enable loop fusion on a
 number of loops.
+
+
+
+\section{Internal parameters}
+A parameter in SCoP is defined as any operand which is defined outside. These are first order parameters.
+However, there are statements which only use parameters to define another operand. We call these as internal or
+derived parameters.
+IP = F (scop-parameters)
+Since IPs can be derived from SESE parameters, they also do not require renaming when SESE is copied for polyhedral
+transformations. While copying SESE we copy internal parameters at the beginning of the SCoP.
+We maintain relative ordering of the internal parameters only as their ordering w.r.t. other
+statements (which do not define internal parameters) does not affect the semantics of the program.
+We could chose to copy IPs outside of the SCoP as well but we don't so as to preserve the original structure of the
+program in case no polyhedral transformations were applied. This also preserves the live-range
+of the original program and hence the register pressure.
+
 
 \section{Fixing accumulated bugs}
 For the past few years graphite was not actively maintained and accumulated bugs. We also believe that
