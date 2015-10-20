@@ -13,11 +13,16 @@
 }
 
 \section{Goals}
-Enabling widespread usage of graphite by having one flag to the end user.
-Fixing accumulated bugs.
-Substantial improvements on several benchmarks with no significant regression.
-Propose enabling of graphite by default under one optimization flag.
-Limiting the number of computations to reduce compile time.
+\begin{enumerate}
+
+  \item Algorithm for scop detection.
+  \item Comparative analysis of llvm-polly, earlier graphite, current algorithm.
+  \item Modelling dependencies. (Cross bb, memory reads/writes)
+  \item SCoPs detected by llvm-poly vs. Graphite.
+  \item Experimental results on compile time improvements/degradation.
+
+\end{enumerate}
+
 
 \section{faster scop detection for selecting relevant loop nests}
 The scope of the polyhedral program analysis and manipulation is a sequence of loop
@@ -104,24 +109,6 @@ The onus of generating optimal code should be on the framework and it should dec
 for optimal data locality. So we deprecated all the flags except -fgraphite-identity and -floop-nest-optimize.
 We kept -fgraphite-identity for debugging purposes only.
 
-\section{Limiting the number of computations done in ISL}
-Newer releasese of ISL have a way to bail out when total number of computations reach a limit.
-This feature is very useful because this way we can limit the overhead in compile time. This also
-allows greater control over optimization when loops are not too important. We provided a flag so
-that users can tune it as required.
-
-
-\section{Translating gimple IR to polyhedral representation without changing the original IR}
-The gimple IR needs to be translated to polyhedral representation to be fed to isl.
-
-This is done by first creating a copy of original SCoP and conditionally enabling one region.
-Since the IR is in SSA form copying it requires a lot of book-keeping for scalars and PHIs.
-Existing algorithm in graphite got around this problem by translating scalar to a one element array.
-Since array is a data-reference, it does not require SSA renaming and book-keeping. This choice,
-however, causes data references created in the original code. So even when there was no optimization done
-IR was modified. Current algorithm removes this limitation by representing scalars as one element array only in the
-polyhedral representation (virtually). This algorithm is more involved but avoids changes in the original code.
-
 \subsection{Interesting scalars}
 \begin{enumerate}
         \item Cross basic block scalar dependencies.
@@ -130,58 +117,10 @@ polyhedral representation (virtually). This algorithm is more involved but avoid
 \end{enumerate}
 
 
-\section{Measuring effectiveness of optimization}
-Some way/heuristic of measuring 'amount' of optimization is reqruired because it is a costly optimization.
-By having a metric would allow us to bail out early.
-\begin{enumerate}
-  \item Proximity
-  \item Complexity in terms of code-size
-\end{enumerate}
-
-Bail out early based on following parameters.
-\begin{enumerate}
-  \item Optimization wasn't effective.
-  \item Computation taking too long.
-  \item Hotness of code.
-  \item Code size.
-  \item Number of parameters
-\end{enumerate}
-
-Essentially,
-
-Number of ISL computations N = F (hotness, codesize, number of params, threshold of opt)
-N increases with hotness, threshold of opt.
-N decreases with codesize, number of params.
-
-\section{Removing redundant dimensions from polyhedral represenation for faster compilation}
-
-\section{Representing static schedule in ISL schedule node}
-
-\section{Loop canonicalization}
-Currently, we insert an empty basic block after each loop in a function. This is done so that
-we can add PHIs to converge definitions from SCoPs from gimple and poly side. This changes
-the IR but those changes are easily removed by subsequent passes. So it does not cause any
-performance/code-size change in the generated code.
-
-
-\section{Implementing loop fusion}
-
-\section{Enabling graphite with profile guided optimization}
-Although we have tried to redesign graphite for faster compile time, it still has some overhead.
-Experimental results show an average of {} overhead in compile time.
-Because of that, we would like to enable this for cases when compile time is not of much concern,
-e.g. benchmarking, iterative compilation with feedback.
-
-We have also enabled graphite to spend extra time on important loops. This can be done by tuning
-isl-timeout programmatically based on the hotness of the loop. We believe expensive optimizations
-can have the option to be demand driven so that compiler spends time on program portions which matters
-most from the performance perspective. \ref{Duesterwald}
-
 
 \section{Experimental Results}
 
 \section{Conclusion and Future Work}
-Iterative compilation with varying threshold of computations, and with profile info.
 
 
 \references{}
