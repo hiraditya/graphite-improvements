@@ -8,7 +8,8 @@
   We enabled graphite to detect wider range of loops which it can optimize and discard
   difficult-to-optimize loops in a much faster way. We have also brought demand driven optimization
   into the graphite framework, since we want it to spend extra time in loops which matters,
-  in the presence of profile information. 
+  in the presence of profile information.
+  Demand driven optimization is new approach to optimization: Moving from problem to solution.
 }
 
 \section{Goals}
@@ -152,6 +153,9 @@ Number of ISL computations N = F (hotness, codesize, number of params, threshold
 N increases with hotness, threshold of opt.
 N decreases with codesize, number of params.
 
+\section{Removing redundant dimensions from polyhedral represenation for faster compilation}
+
+\section{Representing static schedule in ISL schedule node}
 
 \section{Loop canonicalization}
 Currently, we insert an empty basic block after each loop in a function. This is done so that
