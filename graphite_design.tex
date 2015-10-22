@@ -84,7 +84,7 @@ number of loops.
 
 
 
-\section{Internal parameters}
+\section{Internal parameters, derived parameters}
 A parameter in SCoP is defined as any operand which is defined outside. These are first order parameters.
 However, there are statements which only use parameters to define another operand. We call these as internal or
 derived parameters.
@@ -115,6 +115,28 @@ We kept -fgraphite-identity for debugging purposes only.
         \item Reads from outside of SCoPs
         \item Writes to outside of SCoP.
 \end{enumerate}
+
+
+\section{merging sub-scops to form larger scops}
+We compose larger SCoPs by merging smaller ones at the same loop depth. After combining the sub-scops
+the newly formed scop has to be reanalyzed for all the validity requirements:
+\begin{enumerate}
+  \item The entry basic block should have only one predecessor and the exit basic block should have only one
+    successsor.
+  \item The entry should dominate the exit.
+  \item The exit should post-dominate the entry.
+  \item Writes to outside of SCoP.
+  \item The scalar evolution of all the operands in the new region should be affine.
+
+    \begin{enumerate}
+      \item The statement should not have any side effects.
+      \item Only label, pure call, assignments and comparison operations on integers are allowed.
+    \end{enumerate}
+\end{enumerate}
+
+Even if we have analyzed the statements in a sub-scop we need to redo the whole thing because the scalar evolution
+of the references change with the scope of the program under analysis.
+
 
 
 
