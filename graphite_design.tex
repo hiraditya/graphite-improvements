@@ -137,7 +137,30 @@ the newly formed scop has to be reanalyzed for all the validity requirements:
 Even if we have analyzed the statements in a sub-scop we need to redo the whole thing because the scalar evolution
 of the references change with the scope of the program under analysis.
 
+\section{Maximal SCoPs and why they might not be very useful.}
+A Maximal SCoP is the larges such SCoP which cannot be extended further. This concept is used
+in LLVM \ref{Tobi} and in previous graphite implementation \ref{Graphite}. Since the main focus of
+polyhedral optimizations is the loops and code surrounding it, finding a maximal SCoP might introduce branches
+which are not related to loops at all. e.g.,
 
+\begin{comment}
+Scop
+Cond
+|
+|--True Region
+|
+|--False Region
+|       | Loop1
+|       |
+\end{comment}
+
+In this example The cond and True regions just add extra code to the polyhedral analysis and transformations if there
+are no loops in it. Even if there are loops in True region they better be analyzed separately because
+execution of Loop1 and True Region are mutually exclusive.
+Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
+
+
+\section{Region based SCoP detection of LLVM}
 
 
 \section{Experimental Results}
