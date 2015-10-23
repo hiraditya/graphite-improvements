@@ -98,22 +98,28 @@ program in case no polyhedral transformations were applied. This also preserves 
 of the original program and hence the register pressure.
 
 
-\section{Fixing accumulated bugs}
-For the past few years graphite was not actively maintained and accumulated bugs. We also believe that
-moving from cloog to isl might have exposed a few corner cases of the initial implementation of graphite.
-Even the graphite-identity was not working. graphite-identity is not intended to change the functionality
-of the program. So the first step was to get graphite-identity to work. Second was to remove optimizations which
-were either redundant because of transition to isl, or were generating incorrect code. Also, the feedback that we
-got from the community was that graphite needs to operate under one flag otherwise users might not use it effectively.
-The onus of generating optimal code should be on the framework and it should decide the best code to generate
-for optimal data locality. So we deprecated all the flags except -fgraphite-identity and -floop-nest-optimize.
-We kept -fgraphite-identity for debugging purposes only.
+\section{Modelling dependencies}
 
-\subsection{Interesting scalars}
+The execution order is modelled...
+The data flow dependencies are modelled on a case by case basis.
+
+Memory accesses are modelled as affine sequence of memory accesses.
+Scalar references which are local to a basic block are ...
+Scalar references which cross the basic block can be of three kinds.
 \begin{enumerate}
-        \item Cross basic block scalar dependencies.
-        \item Reads from outside of SCoPs
-        \item Writes to outside of SCoP.
+  \item Cross basic block scalar dependencies within a SCoP: We create an edge from the producer to the consumer.
+    PHIs are also cross-bb dependencies and we preserve them.
+  \item Reads from outside of SCoPs: These references are modelled as parameter to the SCoP.
+  \item Writes to outside of SCoP: These references require a closed PHI node at the end of the SCoP.
+\end{enumerate}
+
+Unlike Polly which treats each basic blocks as independent by removing cross basic block dependencies, we preserve
+the dependencies. Our approach prevents redundant code to be generated and preserves the original program
+if no optimization took place. This has several advantages:
+\begin{enumerate}
+  \item No cleanup required and hence we have more flexibility on where to invoke graphite in the pass manager.
+  \item This also allows us to generate the optimized code in SSA form which we do. Preserving SSA form on the optimized
+    code enables other high level optimizations.
 \end{enumerate}
 
 
