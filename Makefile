@@ -12,3 +12,6 @@ clean:
 	rm -rf *.aux *.bbl *.blg *.log *.out *.pdf
 
 all: $(paper).pdf
+
+push:
+	git push origin scop_detection
