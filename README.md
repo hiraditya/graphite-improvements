@@ -1,2 +1,2 @@
 # graphite-improvements
-Set of improvements and experimental results.
+Improvements to scop detection and experimental results.
