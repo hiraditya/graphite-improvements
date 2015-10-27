@@ -33,19 +33,69 @@
   Demand driven optimization is new approach to optimization: Moving from problem to solution.
 \end{abstract}
 
-\section{Goals}
-\begin{enumerate}
 
+\section{Introduction}
+\subsection{What is a SCoP?}
+
+\subsection{Why we need to detect scops for translation in polyhedral model?}
+
+\subsection{Existing implementations: graphite, polly}
+short introduce region trees
+
+\subsection{Contributions of this paper}
+\begin{enumerate}
   \item Algorithm for scop detection.
   \item Comparative analysis of llvm-polly, earlier graphite, current algorithm.
-  \item Modelling dependencies. (Cross bb, memory reads/writes)
   \item SCoPs detected by llvm-poly vs. Graphite.
-  \item Experimental results on compile time improvements/degradation.
-
+  \item Experimental results on compile time improvements.
 \end{enumerate}
 
 
-\section{faster scop detection for selecting relevant loop nests}
+
+\section{Related work}
+
+\subsection{Current algorithm for scop detection in Graphite}
+
+Describe the current status of Graphite scop detection: limitations, and compilation time.
+
+Part of limitation, the functionality limit-scop was added as an intermediate
+step to discard the loops which graphite could not handle. Removing limit-scop
+required handling of different cases of loops and surrounding code.  The scop is
+now larger so most test cases required 'number of scops detected' to be
+fixed. By increasing the size of scop we can now optimize loops which are
+'siblings' of each other. This could enable loop fusion on a number of loops.
+
+\subsection{Polly scop detection: a region based SCoP detection}
+
+\subsection{Maximal SCoPs and why they might not be very useful.}
+A Maximal SCoP is the larges such SCoP which cannot be extended further. This concept is used
+in LLVM 
+%\cite{Tobi}
+and in previous graphite implementation.
+%\cite{Graphite}. 
+Since the main focus of
+polyhedral optimizations is the loops and code surrounding it, finding a maximal SCoP might introduce branches
+which are not related to loops at all. e.g.,
+
+\begin{comment}
+Scop
+Cond
+|
+|--True Region
+|
+|--False Region
+|       | Loop1
+|       |
+\end{comment}
+
+In this example The cond and True regions just add extra code to the polyhedral analysis and transformations if there
+are no loops in it. Even if there are loops in True region they better be analyzed separately because
+execution of Loop1 and True Region are mutually exclusive.
+Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
+
+
+
+\section{A new faster scop detection to select relevant loop nests}
 The scope of the polyhedral program analysis and manipulation is a sequence of loop
 nests with constant strides and affine bounds. It includes non-perfectly nested loops
 and conditionals with boolean expressions of affine inequalities.
@@ -94,57 +144,8 @@ or loop which has at least one sibling.
 \item 
 \end{enumerate}
 
-\section{Removing limit-scops}
-The functionality limit-scop was added
-as an intermediate step to discard the loops which graphite could not
-handle. Removing limit-scop required handling of different cases of loops and
-surrounding code.  The scop is now larger so most test cases required 'number of
-scops detected' to be fixed. By increasing the size of scop we can now optimize
-loops which are 'siblings' of each other. This could enable loop fusion on a
-number of loops.
 
-
-
-\section{Internal parameters, derived parameters}
-A parameter in SCoP is defined as any operand which is defined outside. These are first order parameters.
-However, there are statements which only use parameters to define another operand. We call these as internal or
-derived parameters.
-IP = F (scop-parameters)
-Since IPs can be derived from SESE parameters, they also do not require renaming when SESE is copied for polyhedral
-transformations. While copying SESE we copy internal parameters at the beginning of the SCoP.
-We maintain relative ordering of the internal parameters only as their ordering w.r.t. other
-statements (which do not define internal parameters) does not affect the semantics of the program.
-We could chose to copy IPs outside of the SCoP as well but we don't so as to preserve the original structure of the
-program in case no polyhedral transformations were applied. This also preserves the live-range
-of the original program and hence the register pressure.
-
-
-\section{Modelling dependencies}
-
-The execution order is modelled...
-The data flow dependencies are modelled on a case by case basis.
-
-Memory accesses are modelled as affine sequence of memory accesses.
-Scalar references which are local to a basic block are ...
-Scalar references which cross the basic block can be of three kinds.
-\begin{enumerate}
-  \item Cross basic block scalar dependencies within a SCoP: We create an edge from the producer to the consumer.
-    PHIs are also cross-bb dependencies and we preserve them.
-  \item Reads from outside of SCoPs: These references are modelled as parameter to the SCoP.
-  \item Writes to outside of SCoP: These references require a closed PHI node at the end of the SCoP.
-\end{enumerate}
-
-Unlike Polly which treats each basic blocks as independent by removing cross basic block dependencies, we preserve
-the dependencies. Our approach prevents redundant code to be generated and preserves the original program
-if no optimization took place. This has several advantages:
-\begin{enumerate}
-  \item No cleanup required and hence we have more flexibility on where to invoke graphite in the pass manager.
-  \item This also allows us to generate the optimized code in SSA form which we do. Preserving SSA form on the optimized
-    code enables other high level optimizations.
-\end{enumerate}
-
-
-\section{merging sub-scops to form larger scops}
+\subsection{merging sub-scops to form larger scops}
 We compose larger SCoPs by merging smaller ones at the same loop depth. After combining the sub-scops
 the newly formed scop has to be reanalyzed for all the validity requirements:
 \begin{enumerate}
@@ -163,35 +164,6 @@ the newly formed scop has to be reanalyzed for all the validity requirements:
 
 Even if we have analyzed the statements in a sub-scop we need to redo the whole thing because the scalar evolution
 of the references change with the scope of the program under analysis.
-
-\section{Maximal SCoPs and why they might not be very useful.}
-A Maximal SCoP is the larges such SCoP which cannot be extended further. This concept is used
-in LLVM 
-%\cite{Tobi}
-and in previous graphite implementation.
-%\cite{Graphite}. 
-Since the main focus of
-polyhedral optimizations is the loops and code surrounding it, finding a maximal SCoP might introduce branches
-which are not related to loops at all. e.g.,
-
-\begin{comment}
-Scop
-Cond
-|
-|--True Region
-|
-|--False Region
-|       | Loop1
-|       |
-\end{comment}
-
-In this example The cond and True regions just add extra code to the polyhedral analysis and transformations if there
-are no loops in it. Even if there are loops in True region they better be analyzed separately because
-execution of Loop1 and True Region are mutually exclusive.
-Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
-
-
-\section{Region based SCoP detection of LLVM}
 
 
 \section{Experimental Results}
