@@ -168,6 +168,25 @@ of the references change with the scope of the program under analysis.
 
 \section{Experimental Results}
 
+On Polybench:
+on graphite original scop detection, 189 scops, max loops/scop 8, min loops/scop 1: 109 scops with 1 loop/scop, 316 loops in scops, 1.67 loops/scop
+without 1loop/scop, 80 scops contain 207 loops -> 2.59 loops/scop.
+
+on the new scop detection: 34 scops, max loops/scop 17, min loops/scop 2: 7 scops with 2 loops/scop, 207 loops in scops, 6.09 loops/scop
+
+=> no regressions new/original scop detection, we only discover larger scops (316 - 207 = 109)
+=> removing limit-scops discovers larger scops: 2.59 -> 6.09
+
+on polly: Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with 2 loops/scop, 155 loops in scops, 5.17 loops/scop
+
+
+compile time:
+- graphite old, new
+- polly: region pass, scop detection
+
+number of scops detected per benchmark
+
+
 \section{Conclusion and Future Work}
 
 
