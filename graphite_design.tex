@@ -1,6 +1,27 @@
-\title{Enabling Polyhedral optimization for wide use}
+\documentclass{sigplanconf}
+\usepackage{comment}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amssymb}
 
-\abstract{
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{Impact'16}{January 18--20, 2016, Prague, Cz}
+\copyrightyear{2016} 
+\doi{nnnnnnn.nnnnnnn}
+
+\title{A faster SCoP detection}
+\authorinfo{Aditya Kumar, Sebastian Pop}
+\authorinfo{Samsung Austin R\&D Center}
+
+\maketitle
+
+\begin{abstract}
   For the past few years graphite framework, which brought polyhedral optimizations
   to gcc, was largely unmaintained. We made importatnt designed changes and fixed bugs accumulated over
   the past. The transition from cloog to isl left dead code in multiple places, and made some optimizations
@@ -10,7 +31,7 @@
   into the graphite framework, since we want it to spend extra time in loops which matters,
   in the presence of profile information.
   Demand driven optimization is new approach to optimization: Moving from problem to solution.
-}
+\end{abstract}
 
 \section{Goals}
 \begin{enumerate}
@@ -29,7 +50,7 @@ The scope of the polyhedral program analysis and manipulation is a sequence of l
 nests with constant strides and affine bounds. It includes non-perfectly nested loops
 and conditionals with boolean expressions of affine inequalities.
 The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
-(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \ref{Girbal, Bondhugula, Trifunovic}
+(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \cite{Girbal, Bondhugula, trifunovic}
 
 Current algorithm for SCoP detection in graphite was based on dominator tree where a tree (CFG) traversal is required
 for analyzing an SESE. The tree traversal is linear in the number of basic blocks and SCoP detection is linear in
@@ -73,10 +94,10 @@ or loop which has at least one sibling.
 \item 
 \end{enumerate}
 
-\section{Removing limit_scops}
-The functionality limit_scop was added
+\section{Removing limit-scops}
+The functionality limit-scop was added
 as an intermediate step to discard the loops which graphite could not
-handle. Removing limit_scop required handling of different cases of loops and
+handle. Removing limit-scop required handling of different cases of loops and
 surrounding code.  The scop is now larger so most test cases required 'number of
 scops detected' to be fixed. By increasing the size of scop we can now optimize
 loops which are 'siblings' of each other. This could enable loop fusion on a
@@ -145,7 +166,11 @@ of the references change with the scope of the program under analysis.
 
 \section{Maximal SCoPs and why they might not be very useful.}
 A Maximal SCoP is the larges such SCoP which cannot be extended further. This concept is used
-in LLVM \ref{Tobi} and in previous graphite implementation \ref{Graphite}. Since the main focus of
+in LLVM 
+%\cite{Tobi}
+and in previous graphite implementation.
+%\cite{Graphite}. 
+Since the main focus of
 polyhedral optimizations is the loops and code surrounding it, finding a maximal SCoP might introduce branches
 which are not related to loops at all. e.g.,
 
@@ -174,24 +199,8 @@ Having just the Loop1 as SCoP would prove more beneficial in terms of optimizati
 \section{Conclusion and Future Work}
 
 
-\references{}
-
-S. Girbal, N. Vasilache, C. Bastoul, A. Cohen, D. Parello, M. Sigler, and O. Temam.
-Semi-automatic composition of loop transformations for deep parallelism and memory
-hierarchies. Intl. J. of Parallel Programming, 34(3):261–317, June 2006. Special issue on
-Microgrids
-
-
-U. Bondhugula, A. Hartono, J. Ramanujam, and P. Sadayappan. A practical automatic
-polyhedral parallelization and locality optimization system. In ACM SIGPLAN Conf. on
-Programming Languages Design and Implementation (PLDI’08), Tucson, AZ, USA, June
-2008.
-
-Trifunovic, Konrad, et al. "Graphite two years after: First lessons learned
-from real-world polyhedral compilation."
-GCC Research Opportunities Workshop (GROW'10). 2010.
-
-
-Duesterwald, Evelyn, Rajiv Gupta, and Mary Lou Soffa. "Demand-driven computation of interprocedural data flow." Proceedings of the 22nd ACM SIGPLAN-SIGACT symposium on Principles of programming languages. ACM, 1995.
-http://www.cs.ucr.edu/~gupta/research/Publications/Comp/popl95.pdf
-
+\bibliographystyle{abbrv}
+{\small
+\bibliography{Bibliography}
+}
+\end{document}
