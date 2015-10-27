@@ -15,3 +15,7 @@ all: $(paper).pdf
 
 push:
 	git push origin scop_detection
+
+dependences:
+	apt-get install texlive-latex-extra texlive-fonts-recommended texlive-latex-base 
+
