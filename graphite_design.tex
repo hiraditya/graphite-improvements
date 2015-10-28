@@ -255,6 +255,19 @@ are no loops in it. Even if there are loops in True region they better be analyz
 execution of Loop1 and True Region are mutually exclusive.
 Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
 
+\section{The loop tree}
+A loop tree is an abstraction where a CFG is represented as a set of loops rooted at a loop node. In the trivial case we can treat function definition as a loop (which executes only once), at depth zero. The top level loops inside function can be treated as loops with depth one and any loop nested under loop at depth `n' would have depth of `n+1'.
+
+In GCC a parent loop points to one of its children loops and all other childrens are connected as siblings edges.
+Each loop has two pointers `next', which points to one of its sibling loops and, `innner
+Suppose, thre are `l' loops in a function ranging from 0 to l-1.
+in-degree (loop) = {0, 1}
+out-degree (loop) = {0, 1, 2}
+loop(l, d)->next = loop(m, d), where l neq m.
+loop(l, d)->child = loop(m, d+1)
+
+In the loop tree, only the function has in-degree of 0, all other loops have in-degree of one.
+Nodes with out degree of zero represent innermost loops. Every reducible control flow graph can be represented as a loop tree.
 
 
 \section{A new faster scop detection to select relevant loop nests}
