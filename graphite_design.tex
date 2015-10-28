@@ -152,6 +152,21 @@ information about specific aspects of the program through program analysis:
   under the form of a tree: loop nodes are linked with inner loop, and next loop
   relations.
 
+\item The loop tree:
+A loop tree is an abstraction where a CFG is represented as a set of loops rooted at a loop node. In the trivial case we can treat function definition as a loop (which executes only once), at depth zero. The top level loops inside function can be treated as loops with depth one and any loop nested under loop at depth `n' would have depth of `n+1'.
+
+In GCC a parent loop points to one of its children loops and all other childrens are connected as siblings edges.
+Each loop has two pointers `next', which points to one of its sibling loops and, `innner
+Suppose, thre are `l' loops in a function ranging from 0 to l-1.
+in-degree (loop) = {0, 1}
+out-degree (loop) = {0, 1, 2}
+loop(l, d)->next = loop(m, d), where l neq m.
+loop(l, d)->child = loop(m, d+1)
+
+In the loop tree, only the function has in-degree of 0, all other loops have in-degree of one.
+Nodes with out degree of zero represent innermost loops. The sibling loops are connected in program order i.e., loop->next either executes immediately before or immediately after loop with no loops in between.
+Every reducible control flow graph can be represented as a loop tree.
+
 \item Static Single Assignment (SSA) form \cite{cytron}, inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
   variables are either the result of expressions, or the result of phi nodes
@@ -255,50 +270,53 @@ are no loops in it. Even if there are loops in True region they better be analyz
 execution of Loop1 and True Region are mutually exclusive.
 Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
 
-\section{The loop tree}
-A loop tree is an abstraction where a CFG is represented as a set of loops rooted at a loop node. In the trivial case we can treat function definition as a loop (which executes only once), at depth zero. The top level loops inside function can be treated as loops with depth one and any loop nested under loop at depth `n' would have depth of `n+1'.
-
-In GCC a parent loop points to one of its children loops and all other childrens are connected as siblings edges.
-Each loop has two pointers `next', which points to one of its sibling loops and, `innner
-Suppose, thre are `l' loops in a function ranging from 0 to l-1.
-in-degree (loop) = {0, 1}
-out-degree (loop) = {0, 1, 2}
-loop(l, d)->next = loop(m, d), where l neq m.
-loop(l, d)->child = loop(m, d+1)
-
-In the loop tree, only the function has in-degree of 0, all other loops have in-degree of one.
-Nodes with out degree of zero represent innermost loops. Every reducible control flow graph can be represented as a loop tree.
-
-
 \section{A new faster scop detection to select relevant loop nests}
-The scope of the polyhedral program analysis and manipulation is a sequence of loop
-nests with constant strides and affine bounds. It includes non-perfectly nested loops
-and conditionals with boolean expressions of affine inequalities.
-The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
-(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \cite{Girbal, Bondhugula, trifunovic}
+%The scope of the polyhedral program analysis and manipulation is a sequence of loop
+%nests with constant strides and affine bounds. It includes non-perfectly nested loops
+%and conditionals with boolean expressions of affine inequalities.
+%The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
+%(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \cite{Girbal, Bondhugula, trifunovic}
 
-Current algorithm for SCoP detection in graphite was based on dominator tree where a tree (CFG) traversal is required
-for analyzing an SESE. The tree traversal is linear in the number of basic blocks and SCoP detection is linear in
-number of instructions. This is reasonably fast but it utilizes a generic infrastructure of SESE. With regards to
-polyhedral optimization we are only interested in subtrees with loops. So it makes more sense to utilize higher level
-semantics of CFG e.g., loop tree. Since higher level abstractions contain more statments, discarding them early
-makes algorithm converge faster.
+%Current algorithm for SCoP detection in graphite was based on dominator tree where a tree (CFG) traversal is required
+%for analyzing an SESE. The tree traversal is linear in the number of basic blocks and SCoP detection is linear in
+%number of instructions. This is reasonably fast but it utilizes a generic infrastructure of SESE. With regards to
+%polyhedral optimization we are only interested in subtrees with loops. So it makes more sense to utilize higher level
+%semantics of CFG e.g., loop tree. Since higher level abstractions contain more statments, discarding them early
+%makes algorithm converge faster.
 
-The new algorithm is geared towards tree traversal on loop structure. The algorithm is linear in number of loops
+The new algorithm iterates on the loop tree nodes. The traversal starts at a loop-nest at depth one.
+The code inside the loop and all the nested loops are analyzed recursively for validity. Once all the validity
+constraints are satisfied, the loop-nest becomes a valid scop. Once a valid loop is found the algorithm analyzes the
+`next' loop (loop at same depth and immediate sibling of the loop just analyzed). If an adjacent loop is found to be a
+valid SCoP as well then we try to merge both loop nests by analyzing the combined region for validity. If the combined
+region represent a valid SCoP then the combined SESE is saved and further analysis is continued to extend the SCoP
+again. If the combined SESE is not a valid SCoP then the first SCoP is saved and analsis starts by trying to extend
+the second SCoP.
+
+With this approach, the number of instructions to be analyzed for validity reduces to a minimal set.
+We start by analyzing those statements which are inside a loop, because validity of those statements is
+necessary for the validity of loop. The statements outside the loop nest can be just excluded from the
+SESE if they are not valid.
+
+\subsection{Preconditions}
+The alogrithm assumes following things to be true.
+\begin{enumerate}
+\item The loop tree represents a reducible CFG.
+\end{enumerate}
+
+\subsection{Postconditions}
+The set of scops thus collected have the following properties
+\begin{enumerate}
+\item No SCoP intersects with another in the set.
+\end{enumerate}
+
+\subsection{complexity of algorithm}
+The algorithm is linear in number of loops
 which is much faster than the previous algorithm. The algorithm is based on a very simple structural property of loop
 tree.
 
 LoopTree = LoopNest
 LoopNest = LoopTree; nested loop
-
-Briefly, we start the traversal at a loop-nest and analyze it recursively for validity. Once a valid loop is
-found we find a valid adjacent loop. If an adjacent loop is found then we merge both loop nests
-other wise we form a SCoP and resume the algorithm from the adjacent loop nest. The data structure to represent an SESE
-is an ordered pair of edges (entry, exit). Choosing a simple data structure allows us to extend a SCoP in both the
-directions. With this approach, the number of instructions to be analyzed for validity reduces to a minimal set.
-We start by analyzing those statements which are inside a loop, because validity of those statements is
-necessary for the validity of loop. The statements outside the loop nest can be just excluded from the
-SESE if they are not valid.
 
 In the graphite framework we do not include statements outside before the first and after the last loop in an SESE.
 So in that sense, SCoP detected by this function may not be maximal.
@@ -311,12 +329,12 @@ To make the scop detection simpler we canonicalize the loops into a closed SSA f
 The previous graphite framework detected scop by analyzing an SESE. That approach resulted in a highly recursive structure
 with redundancies at several places and hence, increase in compile time. In the new framework, we try to discard irrelevant
 regions as fast as we can. Essentially,
+
 \begin{enumerate}
 \item Discard functions with less than two loops: Since we are mostly intersted in optimizing loop nests
 or loop which has at least one sibling.
 \item Start the scop detection from a CFG node which begins from a loop header.
 \item Break the SCoP at a point where we find a statement which cannot be represented by graphite.
-\item 
 \end{enumerate}
 
 
