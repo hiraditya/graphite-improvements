@@ -64,29 +64,29 @@ constructs in the polyhedral model, these statements will not be integrated in a
 SCoP, causing a split of the region containing such difficult statements into
 two SCoPs.
 
-In order to extend the applicability of polyhedral compilation, Cedric Bastoul
-presented several techniques \cite{bastoul} to extend SCoPs to general
-conditions, enlarging the limits of SCoPs to full function body.  We will not
-consider these SCoP extension techniques in the current paper, as we want a fast
-SCoP detection suitable to be turned on by default in usual optimization levels,
-like ``-O2'', ``-O3'', or ``-Ofast''.  For that, we need an algorithm that is
-able to quickly converge on the largest SCoPs that can profitably be transformed
-by a polyhedral compiler like ISL \cite{verdoolaege} within a reasonable amount
-of compilation time.  Practically, on a large number of compiled programs, we
-want to use close to zero overhead for functions without loops, or non
-interesting loops for the polyhedral compilation, and less than ten percent of
-the overall compilation time when optimizing loops for hot paths as shown in the
-profile of the compiled program.
+To extend the applicability of polyhedral compilation, \cite{scopExtend}
+presents techniques to represent general conditions, enlarging the limits of
+SCoPs to full function body.  We will not consider these SCoP extension
+techniques in the current paper, as we want a fast SCoP detection suitable to be
+turned on by default in usual optimization levels, like ``-O2'', ``-O3'', or
+``-Ofast''.  For that, we need an algorithm that is able to quickly converge on
+the largest SCoPs that can profitably be transformed by a polyhedral compiler
+like ISL \cite{verdoolaege2010isl} within a reasonable amount of compilation time.
+Practically, on a large number of compiled programs, we want to use close to
+zero overhead for functions without loops, or non interesting loops for the
+polyhedral compilation, and less than ten percent of the overall compilation
+time when optimizing loops for hot paths as shown in the profile of the compiled
+program.
 
 \subsection{High level overview of SCoP detection algorithms}
 
 Existing implementations of SCoP detection based on low level representations
 are based on some form of representation of the control flow graph: the first
-implementation we did for Graphite \cite{spop-grosser} was based on the control
+implementation we did for Graphite \cite{graphite} was based on the control
 flow graph itself and the basic block dominators tree.  Then Polly improved on
-this SCoP detection by working on an abstraction of the control flow graph, the
+this SCoP detection \cite{polly} by working on an abstraction of the control flow graph, the
 single entry single exit (SESE) region tree, a representation that integrates
-the dominators tree on the control flow graph \cite{keshav-pingali}.
+the dominators tree on the control flow graph \cite{sese}.
 
 In order to avoid constructing the region tree, and to help the SCoP detection
 algorithm to faster converge on the parts of code that matter to polyhedral
@@ -135,13 +135,13 @@ information about specific aspects of the program through program analysis:
   \cite{dragonbook} represent the relation between basic blocks with respect to
   the control flow properties of the program: a basic block A is said to
   dominate another basic block B when all execution paths from the beginning of
-  the function have to pass through A before reaching B.  Similarly the post-dominator
-  information is obtained by inverting the direction of all edges in the CFG and
-  then asking the same question with respect to the block ending the function: A
-  is said to post-dominate B when all paths from the end of the function have to
-  pass through A to reach B in the edge-reversed CFG.
+  the function have to pass through A before reaching B.  Similarly, the
+  post-dominator information is obtained by inverting the direction of all edges
+  in the CFG and then asking the same question with respect to the block ending
+  the function: A is said to post-dominate B when all paths from the end of the
+  function have to pass through A to reach B in the edge-reversed CFG.
 
-\item The single entry single exit (SESE) regions \cite{keshav-pingali} are
+\item The single entry single exit (SESE) regions \cite{sese} are
   obtained from the CFG and the DOM and Post-DOM trees by identifying contiguous
   sequences of basic blocks dominated and post-dominated by unique basic blocks.
   The SESE regions may contain sub regions that have the SESE property: this
@@ -152,20 +152,21 @@ information about specific aspects of the program through program analysis:
   under the form of a tree: loop nodes are linked with inner loop, and next loop
   relations.
 
-\item Static Single Assignment (SSA) form \cite{zadek}, inserts extra scalar
+\item Static Single Assignment (SSA) form \cite{cytron}, inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
   variables are either the result of expressions, or the result of phi nodes
   placed at control flow junctions in basic blocks that are target of two or
   more control flow edges.  Assignments from phi nodes represent all the
   possible assignments considering the control flow graph.
 
-\item An abstraction of the SSA is that of a declarative language in which there
-  are no assignments or imperative language constructs.  The abstraction only
-  represents the computation of scalar variables that are either the result of
-  arithmetic expressions, or the result of two kinds of phi nodes: loop phi
-  nodes have two arguments, one is defined outside the loop containing the phi
-  node, and the other is defined inside the loop.  Loop close phi nodes have
-  only one argument that is defined in an inner loop.
+\item An abstraction of the SSA is that of a declarative language
+  \cite{spop2007} in which there are no assignments or imperative language
+  constructs.  The abstraction only represents the computation of scalar
+  variables that are either the result of arithmetic expressions, or the result
+  of two kinds of phi nodes: loop phi nodes have two arguments, one is defined
+  outside the loop containing the phi node, and the other is defined inside the
+  loop.  Loop close phi nodes have only one argument that is defined in an inner
+  loop.
 
 \item The analysis of scalar evolutions (scev) \cite{scev} starts from the
   abstraction of the SSA representation described above by recognizing the
@@ -180,10 +181,10 @@ information about specific aspects of the program through program analysis:
   declarations can be expressed as scevs derived from declarations of other
   recursive and partial recursive functions.
 
-\item The analysis of the number of iterations \cite{scev} provides a scev
-  expression that represents the number of times a loop is executed.  The number
-  of iterations is computed as the scev of a close phi node, or last value, of a
-  scev starting at zero and incremented by one at each iteration of the loop.
+\item The analysis of the number of iterations \cite{scev} provides a scev that
+  represents the number of times a loop is executed.  The number of iterations
+  is computed as the scev of a close phi node, or last value, of a scev starting
+  at zero and incremented by one at each iteration of the loop.
 
 \item Pointer analysis detects base and access functions for all memory
   locations that are accessed in the program.
@@ -194,7 +195,7 @@ information about specific aspects of the program through program analysis:
 \item Data reference analysis uses the results of the scev analysis to determine
   the memory access patterns of pointers in loops.
 
-\item The delinearization analysis \cite{delin} reconstructs a high level
+\item The delinearization analysis \cite{delinearization} reconstructs a high level
   representation of arrays under the form of Fortran subscripts.  The
   delinearization uses all the access functions of all the data references in a
   loop, a region, or a function, in order to make sure all memory accesses
@@ -206,9 +207,9 @@ As we have seen, gradually, these analyzes extract from low level constructs
 higher level representations: later analyzes are based on earlier lower level
 results, building up a castle out of basic bricks.  All this information
 synthesized by the compiler allows the representation of diverse imperative
-programming languages into a polyhedral form \cite{} containing a very high
-level information of loop iteration domains, memory accesses, and static and
-dynamic schedules.
+programming languages into a polyhedral form \cite{Girbal} containing a very
+high level information of loop iteration domains, memory accesses, and static
+and dynamic schedules.
 
 The next subsection describes in more detail how all these analyzes are used in
 current implementations of the SCoP detection: basically the compiler has to
