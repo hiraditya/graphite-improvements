@@ -195,12 +195,12 @@ information about specific aspects of the program through program analysis:
 \item Data reference analysis uses the results of the scev analysis to determine
   the memory access patterns of pointers in loops.
 
-\item The delinearization analysis \cite{delinearization} reconstructs a high level
-  representation of arrays under the form of Fortran subscripts.  The
-  delinearization uses all the access functions of all the data references in a
-  loop, a region, or a function, in order to make sure all memory accesses
-  follow the exact same pattern, i.e., the same subscript dimensions are valid
-  in all accesses.
+\item The delinearization analysis \cite{delinearization1, delinearization2}
+  reconstructs a high level representation of arrays under the form of Fortran
+  subscripts.  The delinearization uses all the access functions of all the data
+  references in a loop, a region, or a function, in order to make sure all
+  memory accesses follow the exact same pattern, i.e., the same subscript
+  dimensions are valid in all accesses.
 \end{itemize}
 
 As we have seen, gradually, these analyzes extract from low level constructs
