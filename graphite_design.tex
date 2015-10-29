@@ -353,30 +353,11 @@ The set of scops thus collected have the following properties
 \item Domincance information is preserved.
 \end{enumerate}
 
-\subsection{complexity of algorithm}
-The algorithm is linear in number of loops
-which is much faster than the previous algorithm. The algorithm is based on a very simple structural property of loop
-tree.
-
-LoopTree = LoopNest
-LoopNest = LoopTree; nested loop
-
-GIMPLE statements belonging to the SCoP should not contain calls to functions with
-side effects (pure and const function calls are allowed) and the only memory references
-that are allowed are accesses through arrays with affine subscript functions.
-
-To make the scop detection simpler we canonicalize the loops into a closed SSA form.
-The previous graphite framework detected scop by analyzing an SESE. That approach resulted in a highly recursive structure
-with redundancies at several places and hence, increase in compile time. In the new framework, we try to discard irrelevant
-regions as fast as we can. Essentially,
-
+With the new approach it is faster to discard invalid loop-nests. Essentially,
 \begin{enumerate}
-\item Discard functions with less than two loops: Since we are mostly intersted in optimizing loop nests
-or loop which has at least one sibling.
-\item Start the scop detection from a CFG node which begins from a loop header.
-\item Break the SCoP at a point where we find a statement which cannot be represented by graphite.
+\item Discard functions with less than two loops. Since all (?) the optimizations enabled in polyhedral model work on loop nests (e.g., blocking, interchange, tiling etc.).  or on sibling loops (e.g., fusion).
+\item Start the scop detection from a CFG node which begins from a loop header. This way the algorithm analyzes statements which matter most. This allows discarding unrepresentable loops early in the scop-detection process.
 \end{enumerate}
-
 
 \subsection{merging sub-scops to form larger scops}
 We compose larger SCoPs by merging smaller ones at the same loop depth. Even if we have analyzed the statements
@@ -388,12 +369,17 @@ of the references change with the region of the program under analysis. For the 
   \item The entry should dominate the exit.
   \item The exit should post-dominate the entry.
   \item The scalar evolution of all the operands in the new region should be affine.
-  \item The statement should not have any side effects. Only label, pure call, assignments and comparison
-    operations on integers are allowed.
+  \item All the statements inside the region should be reprepresentable in the polyhedral mode.
+  Only labels, pure function calls, assignments and comparison operations on integers are allowed.
   \item The SCoP should have at least one data reference and no more than
     'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
   \item We also limit the number of parameters to a maximum value (set by programmer).
 \end{enumerate}
+
+\subsection{complexity of algorithm}
+The algorithm is linear in number of loops
+which is much faster than the previous algorithm. The algorithm is based on a very simple structural property of loop
+tree.
 
 \section{Experimental Results}
 
