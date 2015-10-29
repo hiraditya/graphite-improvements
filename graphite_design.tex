@@ -332,6 +332,10 @@ We start by analyzing those statements which are inside a loop, because validity
 necessary for the validity of loop. The statements outside the loop nest can be just excluded from the
 SESE if they are not valid.
 
+Since this algorithm starts from the loop header, it would exclude statements outside before the first and after the
+last loop in an SESE. Also,regions without loops maybe excluded if they are not surrounded by loops.
+In that sense, SCoP detected may not be maximal.
+
 \subsection{Preconditions}
 The alogrithm assumes following things to be true.
 \begin{enumerate}
@@ -351,9 +355,6 @@ tree.
 
 LoopTree = LoopNest
 LoopNest = LoopTree; nested loop
-
-In the graphite framework we do not include statements outside before the first and after the last loop in an SESE.
-So in that sense, SCoP detected by this function may not be maximal.
 
 GIMPLE statements belonging to the SCoP should not contain calls to functions with
 side effects (pure and const function calls are allowed) and the only memory references
