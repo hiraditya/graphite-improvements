@@ -340,12 +340,17 @@ In that sense, SCoP detected may not be maximal.
 The alogrithm assumes following things to be true.
 \begin{enumerate}
 \item The loop tree represents a reducible CFG.
+\item All the loops are in closed SSA form.
+\item Alias information is available.
+\item Dominance information is available.
 \end{enumerate}
 
 \subsection{Postconditions}
 The set of scops thus collected have the following properties
 \begin{enumerate}
 \item No SCoP intersects with another in the set.
+\item Alias analysis is preserved.
+\item Domincance information is preserved.
 \end{enumerate}
 
 \subsection{complexity of algorithm}
@@ -385,6 +390,9 @@ of the references change with the region of the program under analysis. For the 
   \item The scalar evolution of all the operands in the new region should be affine.
   \item The statement should not have any side effects. Only label, pure call, assignments and comparison
     operations on integers are allowed.
+  \item The SCoP should have at least one data reference and no more than
+    'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
+  \item We also limit the number of parameters to a maximum value (set by programmer).
 \end{enumerate}
 
 \section{Experimental Results}
