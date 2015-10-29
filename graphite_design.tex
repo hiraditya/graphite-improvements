@@ -150,7 +150,7 @@ information about specific aspects of the program through program analysis:
   components \cite{tarjan} on the CFG, loop nesting and sequence are represented
   under the form of a tree: loop nodes are linked with $inner$ loop, and $next$
   loop relations.  The function body is represented as a loop at the root of the
-  loop tree, and its depth is zero.  The depth of $inner$ loops is one more than
+  loop tree, and its depth is zero.  The depth of inner loops is one more than
   their parent, and sibling loops linked through $next$ are at the same depth.
 
   % Do we really need to document this?  Are you using this property in the rest of the paper?
@@ -368,25 +368,18 @@ or loop which has at least one sibling.
 
 
 \subsection{merging sub-scops to form larger scops}
-We compose larger SCoPs by merging smaller ones at the same loop depth. After combining the sub-scops
-the newly formed scop has to be reanalyzed for all the validity requirements:
+We compose larger SCoPs by merging smaller ones at the same loop depth. Even if we have analyzed the statements
+in a sub-scop we need to redo the whole thing because the scalar evolution
+of the references change with the region of the program under analysis. For the combined region to be a valid SCoP:
 \begin{enumerate}
   \item The entry basic block should have only one predecessor and the exit basic block should have only one
     successsor.
   \item The entry should dominate the exit.
   \item The exit should post-dominate the entry.
-  \item Writes to outside of SCoP.
   \item The scalar evolution of all the operands in the new region should be affine.
-
-    \begin{enumerate}
-      \item The statement should not have any side effects.
-      \item Only label, pure call, assignments and comparison operations on integers are allowed.
-    \end{enumerate}
+  \item The statement should not have any side effects. Only label, pure call, assignments and comparison
+    operations on integers are allowed.
 \end{enumerate}
-
-Even if we have analyzed the statements in a sub-scop we need to redo the whole thing because the scalar evolution
-of the references change with the scope of the program under analysis.
-
 
 \section{Experimental Results}
 
