@@ -1,15 +1,15 @@
 paper = graphite_design
 $(paper).pdf: $(paper).tex Bibliography.bib
-	pdflatex $(paper)
+	pdflatex -shell-escape $(paper)
 	bibtex $(paper)
-	pdflatex $(paper)
-	pdflatex $(paper)
+	pdflatex -shell-escape $(paper)
+	pdflatex -shell-escape $(paper)
 
 latexmk: $(paper).tex Bibliography.bib
 	latexmk -pdf -pvc $< -pdflatex="pdflatex --shell-escape %O %S"
 
 clean:
-	rm -rf *.aux *.bbl *.blg *.log *.out *.pdf
+	rm -rf *.aux *.bbl *.blg *.log *.out *.pdf *.dot
 
 all: $(paper).pdf
 

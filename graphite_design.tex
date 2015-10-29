@@ -4,6 +4,8 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{amssymb}
+\usepackage{graphviz}
+\usepackage{auto-pst-pdf}
 
 \begin{document}
 
@@ -288,21 +290,23 @@ Since the main focus of
 polyhedral optimizations is the loops and code surrounding it, finding a maximal SCoP might introduce branches
 which are not related to loops at all. e.g.,
 
-\begin{comment}
-Scop
-Cond
-|
-|--True Region
-|
-|--False Region
-|       | Loop1
-|       |
-\end{comment}
+%\begin{comment}
+%rankdir=LR;
+\digraph[scale=0.5]{abc}{
+IfCondition -> TrueRegion
+IfCondition -> FalseRegion
+FalseRegion ->Loop1
+Loop1 -> EndProgram
+TrueRegion -> EndProgram
+FalseRegion ->EndProgram
+}
+%\end{comment}
 
-In this example The cond and True regions just add extra code to the polyhedral analysis and transformations if there
-are no loops in it. Even if there are loops in True region they better be analyzed separately because
-execution of Loop1 and True Region are mutually exclusive.
-Having just the Loop1 as SCoP would prove more beneficial in terms of optimizations and overall compile time.
+In this example The `IfCondition' and `TrueRegion' just add extra code to the polyhedral analysis
+and transformations if there are no loops in it.
+Even if there are loops in `TrueRegion', it would be better to analyze them separately because
+execution of `Loop1' and `TrueRegion' are mutually exclusive.
+Having just the `Loop1' as SCoP would prove more beneficial in terms of optimizations and overall compile time.
 
 \section{A new faster scop detection to select relevant loop nests}
 %The scope of the polyhedral program analysis and manipulation is a sequence of loop
@@ -355,8 +359,10 @@ The set of scops thus collected have the following properties
 
 With the new approach it is faster to discard invalid loop-nests. Essentially,
 \begin{enumerate}
-\item Discard functions with less than two loops. Since all (?) the optimizations enabled in polyhedral model work on loop nests (e.g., blocking, interchange, tiling etc.).  or on sibling loops (e.g., fusion).
-\item Start the scop detection from a CFG node which begins from a loop header. This way the algorithm analyzes statements which matter most. This allows discarding unrepresentable loops early in the scop-detection process.
+\item Discard functions with less than two loops. Since all (?) the optimizations enabled in polyhedral model work
+  on loop nests (e.g., blocking, interchange, tiling etc.).  or on sibling loops (e.g., fusion).
+\item Start the scop detection from a CFG node which begins from a loop header. This way the algorithm analyzes
+  statements which matter most. This allows discarding unrepresentable loops early in the scop-detection process.
 \end{enumerate}
 
 \subsection{merging sub-scops to form larger scops}
@@ -382,25 +388,29 @@ which is much faster than the previous algorithm. The algorithm is based on a ve
 tree.
 
 \section{Experimental Results}
-
 On Polybench:
-on graphite original scop detection, 189 scops, max loops/scop 8, min loops/scop 1: 109 scops with 1 loop/scop, 316 loops in scops, 1.67 loops/scop
-without 1loop/scop, 80 scops contain 207 loops -> 2.59 loops/scop.
+\subsection{graphite original scop detection}
+189 scops, max loops/scop 8, min loops/scop 1: 109 scops with 1 loop/scop, 316 loops in scops, 1.67 loops/scop
+without 1loop/scop, 80 scops contain 207 loops (2.59 loops/scop)
 
-on the new scop detection: 34 scops, max loops/scop 17, min loops/scop 2: 7 scops with 2 loops/scop, 207 loops in scops, 6.09 loops/scop
+\subsection{the new scop detection}
+34 scops, max loops/scop 17, min loops/scop 2: 7 scops with 2 loops/scop, 207 loops in scops, 6.09 loops/scop
 
-=> no regressions new/original scop detection, we only discover larger scops (316 - 207 = 109)
-=> removing limit-scops discovers larger scops: 2.59 -> 6.09
+Observations:
+\begin{enumerate}
+  \item no regressions new/original scop detection, we only discover larger scops (316 - 207 = 109)
+  \item removing limit-scops discovers larger scops i.e., from 2.59 to 6.09
+\end{enumerate}
 
-on polly: Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with 2 loops/scop, 155 loops in scops, 5.17 loops/scop
 
+\subsection{Polly}
+Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with 2 loops/scop, 155 loops in scops, 5.17 loops/scop
 
 compile time:
 - graphite old, new
 - polly: region pass, scop detection
 
 number of scops detected per benchmark
-
 
 \section{Conclusion and Future Work}
 
