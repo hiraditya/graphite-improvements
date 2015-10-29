@@ -155,11 +155,17 @@ information about specific aspects of the program through program analysis:
 
   % Do we really need to document this?  Are you using this property in the rest of the paper?
   %The root node has in-degree of 0, all other loop nodes have in-degree of one.
+  % -- This we can remove but we need to mention that an outer loop only points to one inner loop
+  % -- where all inner loops are connected by $next$ relation.
 
   % Same questions here.  If you need to speak about reducibility, you have to define it:
   %A CFG is said to be reducible when ...
-  %Every reducible control flow graph can be represented as a loop tree.
-  
+
+  % Every reducible control flow graph can be represented as a loop tree.
+  % -- I wanted to mention this only to show that 'almost' all programs can be analyzed for
+  % -- scop detection just by using loop-tree. Such that there would be no question on
+  % -- coverage of programs w.r.t. the new algorithm.
+
 \item Static Single Assignment (SSA) form \cite{cytron}, inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
   variables are either the result of expressions, or the result of phi nodes
