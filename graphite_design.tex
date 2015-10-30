@@ -451,20 +451,27 @@ Observations:
 
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
-time complexity and also detects larger SCoPs w.r.t. both previous Graphite
-implementation and LLVM-Polly. We could not get experimental data on the time
-taken during the SCoP detection process because it was very difficult to
-precisely profile only the SCoP-detection part of the polyhedral optimization
-framework. The current timing infrastructure of gcc isn't precise enough to
-benchmark portions of passes which are non-dominating on the overall compile
-time.
+time complexity and also detects larger SCoPs w.r.t. both previous Graphite and
+LLVM-Polly implementations. This stems from the fact that operating on a higher
+level data structure allows us to quickly discard uninteresting regions. We
+could not get experimental data on the compile-time improvements during the SCoP
+detection process because it was very difficult to precisely profile only the
+SCoP-detection part of the polyhedral optimization framework. The current timing
+infrastructure of gcc isn't precise enough to benchmark portions of passes which
+are non-dominating on the overall compile time.
 
 Currently, while merging two SCoPs, we try to find an SESE enclosing both. There
 are techniques to add basic blocks and form SESE enclosing the SCoPs if no such
-region was found. We would like to add this functionality in future. Since this
+SESE was found. We would like to add this functionality in future. Since this
 would have further impact on compile time we would like to do this only on hot
 code paths by using the profile information.
 
+Before starting the SCoP detection process we need to canonicalize loops to
+closed SSA form. While this does not add any extra operations to the program, it
+is certainly not desirable to modify the original program during the analysis
+phase of any optimization pass. We would try to address this in future.  Also,
+we would try to find ways to experimentally verify effectiveness of our
+algorithm.
 
 \bibliographystyle{abbrv}
 {\small
