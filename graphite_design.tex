@@ -408,33 +408,46 @@ program under analysis. In order to merge two SESEs to form a new SESE:
 \item Find a common post-dominator with a single exit.
 \end{enumerate}
 
-\subsection{complexity of algorithm}
-The algorithm is linear in number of loops which is much faster than the
-previous algorithm. The algorithm is based on a very simple structural property
-of loop tree.
+\subsection{Analysis of the SCoP detection algorithms}
+The previous implementation of SCoP detection in Graphite and the existing
+LLVM-Polly implementation are linear in the number of CFG edges, O(Edges).
+
+The new algorithm is linear in the number of loops. If we consider how natural
+loops are implemented in the intermediate level in GCC as well as LLVM, we need
+at least two basic blocks for representing a loop. In that sense the complexity
+of this algorithm is O(Loop Count) < O(Basic Blocks) <= O(Edges)
+
+This helps in discarding invalid regions quickly. However, while analyzing
+statements in an SESE for validity, all of the algorithms above, have to analyze
+each statement.  The new algorithm helps analyze fewer statements in case of an
+invalid SCoP because it focuses on the structure of the CFG first rather than
+the validity of each statement.
 
 \section{Experimental Results}
 On Polybench:
-\subsection{graphite original scop detection}
+\subsection{Original scop detection implementation in Graphite}
 189 scops, max loops/scop 8, min loops/scop 1: 109 scops with 1 loop/scop, 316
 loops in scops, 1.67 loops/scop without 1loop/scop, 80 scops contain 207 loops
 (2.59 loops/scop)
 
-\subsection{the new scop detection}
+\subsection{Scop detection algorithm in LLVM-Polly}
+Since the pretty-printer of Polly does not print number of loops in SCoPs detected,
+we had to patch the source code to get the results.
+Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with
+2 loops/scop, 155 loops in scops, 5.17 loops/scop
+
+
+\subsection{The new scop detection in Graphite}
 34 scops, max loops/scop 17, min loops/scop 2: 7 scops with 2 loops/scop, 207
 loops in scops, 6.09 loops/scop
 
 Observations:
 \begin{enumerate}
-  \item no regressions new/original scop detection, we only discover larger
-    scops (316 - 207 = 109)
-  \item removing limit-scops discovers larger scops i.e., from 2.59 to 6.09
+  \item No regressions new/original scop detection, the new algorithm discovers
+    larger scops (316 - 207 = 109).
+  \item Removing limit-scops discovers larger scops i.e., from 2.59 to 6.09
+    loops per SCoP.
 \end{enumerate}
-
-
-\subsection{Polly}
-Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with
-2 loops/scop, 155 loops in scops, 5.17 loops/scop
 
 compile time:
 - graphite old, new
