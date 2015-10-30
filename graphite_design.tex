@@ -14,7 +14,7 @@
 \setlength{\pdfpagewidth}{\paperwidth}
 
 \conferenceinfo{Impact'16}{January 18--20, 2016, Prague, Cz}
-\copyrightyear{2016} 
+\copyrightyear{2016}
 \doi{nnnnnnn.nnnnnnn}
 
 \title{SCoP Detection: A Fast Algorithm for Industrial Compilers}
@@ -284,16 +284,18 @@ detection described later in this paper.
 
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
-A Maximal SCoP is the larges such SCoP which cannot be extended further. This
-concept is used in LLVM
-%\cite{Tobi}
-and in previous graphite implementation.
-%\cite{Graphite}. 
-Since the main focus of polyhedral optimizations is the loops and code
-surrounding it, finding a maximal SCoP might introduce branches which are not
-related to loops at all. e.g.,
+A Maximal SCoP is the largest such SCoP which cannot be extended further. This
+concept is used in LLVM \cite{polly} and in previous graphite implementation
+\cite{graphite}.  Since the main focus of polyhedral optimizations is the loops
+and code surrounding it, finding a maximal SCoP might introduce branches which
+are not related to loops. Consider the region in Figure-\ref{fig:maximality}.
+In the figure, the `IfCondition' and `TrueRegion' just add extra code to the
+polyhedral analysis and transformations if there are no loops in it. Having just
+the `Loop1' as SCoP would prove more beneficial in terms of optimizations and
+overall compile time.
 
-%\begin{comment}
+\begin{figure}
+\centering
 %rankdir=LR;
 \digraph[scale=0.5]{abc}{
 IfCondition -> TrueRegion
@@ -303,28 +305,14 @@ Loop1 -> EndProgram
 TrueRegion -> EndProgram
 FalseRegion ->EndProgram
 }
-%\end{comment}
+\caption{An SESE bounded by IfCondition and EndProgram}
+\label{fig:maximality}
+\end{figure}
 
-In this example The `IfCondition' and `TrueRegion' just add extra code to the
-polyhedral analysis and transformations if there are no loops in it. Having
-just the `Loop1' as SCoP would prove more beneficial in terms of optimizations
-and overall compile time. Also, regions with no loops are not very interesting
-from a production compiler's point of view where compile time is at a premium.
+Also, regions with no loops are not very interesting from a production
+compiler's point of view where compile time is at a premium.
 
 \section{A new faster scop detection to select relevant loop nests}
-%The scope of the polyhedral program analysis and manipulation is a sequence of loop
-%nests with constant strides and affine bounds. It includes non-perfectly nested loops
-%and conditionals with boolean expressions of affine inequalities.
-%The maximal Single-Entry Single-Exit (SESE) region of the Control Flow Graph
-%(CFG) that satisfies those constraints is called a Static Control Part (SCoP). \cite{Girbal, Bondhugula, trifunovic}
-
-%Current algorithm for SCoP detection in graphite was based on dominator tree where a tree (CFG) traversal is required
-%for analyzing an SESE. The tree traversal is linear in the number of basic blocks and SCoP detection is linear in
-%number of instructions. This is reasonably fast but it utilizes a generic infrastructure of SESE. With regards to
-%polyhedral optimization we are only interested in subtrees with loops. So it makes more sense to utilize higher level
-%semantics of CFG e.g., loop tree. Since higher level abstractions contain more statments, discarding them early
-%makes algorithm converge faster.
-
 The new algorithm iterates on the loop tree nodes. The traversal starts at a
 loop-nest at depth one.  The code inside the loop and all its nested loops are
 analyzed recursively for validity \ref{subsec:validity}. Once all the validity
@@ -368,7 +356,7 @@ The set of scops thus collected have the following properties
 \begin{enumerate}
 \item No SCoP intersects with another in the set.
 \item Alias analysis is preserved.
-\item Domincance information is preserved.
+\item Dominance information is preserved.
 \end{enumerate}
 
 Since this algorithm starts from the loop header, it would exclude statements
@@ -379,34 +367,42 @@ may not be maximal \ref{subsec:maximality}.
 
 \subsection{Validity checks for a SCoP}
 \label{subsec:validity}
-An SESE region is regarded as a valid scop when it satisfies the following conditions:
+An SESE region is regarded as a valid SCoP when it satisfies the following
+conditions:
 \begin{enumerate}
-  \item The entry basic block should have only one predecessor and the exit
-    basic block should have only one successsor (i.e. an SESE).
-  \item The entry should dominate the exit.
-  \item The exit should post-dominate the entry.
-  \item The scalar evolution of all the operands in the new region should be affine.
-  \item All the statements inside the region should be reprepresentable in the
-    polyhedral mode.  Only labels, pure function calls, assignments and
-    comparison operations on integers are allowed.
-  \item The SCoP should have at least one data reference and no more than
-    'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
-  \item We also limit the number of parameters to a maximum value (set by
-    programmer).
+\item The entry basic block should have only one predecessor and the exit
+  basic block should have only one successsor (i.e. an SESE).
+\item The entry should dominate the exit.
+\item The exit should post-dominate the entry.
+\item The scalar evolution of all the operands in the new region should be affine.
+\item All the statements inside the region should be reprepresentable in the
+  polyhedral mode.  Only labels, pure function calls, assignments and
+  comparison operations on integers are allowed.
+\item It should be possible to represent induction variables (of all the loops)
+  as signed integers because ISL might generate negative values in the optimized
+  expressions which needs to be code-generated.
+\item All the loops in the SESE should have single exits.
+\item The number of iterations of the loops in SESE should be deterministic and
+  should not overflow.
+\item The loop nests in SESE should have at least one data reference.
+\item The SCoP should have at least one data reference and no more than
+  'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
+\item We also limit the number of parameters to a maximum value (set by
+  programmer).
 \end{enumerate}
 
 
 
 \subsection{Merging sub-SCoPs}
-We compose larger SCoPs by merging smaller ones at the same loop depth. Even if
-we have analyzed the statements in a sub-scop we need to re-analyze them
-because the scalar evolution of the data references change with the region of the
-program under analysis. In order to merge two SESEs to form a new SESE:
 \label{subsec:merge-sese}
-\begin{enumerate}
-\item Find a common dominator with a single entry.
-\item Find a common post-dominator with a single exit.
-\end{enumerate}
+We compose a larger SESE by merging two smaller SCoPs. In order to merge two
+SESEs to form a new SESE, we find the nearest common dominator with single entry
+and a nearest common post-dominator with single exit. After such entry and exit
+have been found the combined region has to be analyzed for validity. Even if we
+have analyzed the statements in a sub-scop we need to re-analyze them because
+the scalar evolution of the data references change with the region of the
+program under analysis.  If either such entry or exit could not be found the
+algorithm does not combine the SESEs and keeps them as two separate SCoPs.
 
 \subsection{Analysis of the SCoP detection algorithms}
 The previous implementation of SCoP detection in Graphite and the existing
