@@ -282,7 +282,8 @@ detection described later in this paper.
 
 \subsection{Polly scop detection: a region based SCoP detection}
 
-\subsection{Maximal SCoPs and why they might not be very useful.}
+\subsection{Maximal SCoPs and why they might not be very useful}
+\label{subsec:maximality}
 A Maximal SCoP is the larges such SCoP which cannot be extended further. This
 concept is used in LLVM
 %\cite{Tobi}
@@ -325,27 +326,31 @@ from a production compiler's point of view where compile time is at a premium.
 %makes algorithm converge faster.
 
 The new algorithm iterates on the loop tree nodes. The traversal starts at a
-loop-nest at depth one.  The code inside the loop and all the nested loops are
-analyzed recursively for validity. Once all the validity constraints are
-satisfied, the loop-nest becomes a valid scop. Once a valid loop is found the
-algorithm analyzes the `next' loop (loop at same depth and immediate sibling of
-the loop just analyzed). If an adjacent loop is found to be a valid SCoP as well
-then we try to merge both loop nests by analyzing the combined region for
-validity. If the combined region represent a valid SCoP then the combined SESE
-is saved and further analysis is continued to extend the SCoP again. If the
-combined SESE is not a valid SCoP then the first SCoP is saved and analsis
-starts by trying to extend the second SCoP.
+loop-nest at depth one.  The code inside the loop and all its nested loops are
+analyzed recursively for validity \ref{subsec:validity}. Once all the validity
+constraints are satisfied, the loop-nest becomes a valid scop. Once a valid loop
+is found the algorithm analyzes the `next' loop (loop at same depth and
+immediate sibling of the loop just analyzed). If an adjacent loop is found to be
+a valid SCoP as well then we try to merge both loop nests by analyzing the
+combined region for validity. If the combined region represent a valid SCoP then
+the combined SESE \ref{subsec:merge-sese} is saved and further analysis is
+continued to extend the SCoP again. If the combined SESE is not a valid SCoP
+then the first SCoP is saved and analsis starts by trying to extend the second
+SCoP.
 
-With this approach, the number of instructions to be analyzed for validity
-reduces to a minimal set.  We start by analyzing those statements which are
-inside a loop, because validity of those statements is necessary for the
-validity of loop. The statements outside the loop nest can be just excluded from
-the SESE if they are not valid.
+With the new approach it is faster to discard invalid loop-nests very early. The
+algorithm analyzes statements which matter most by starting the scop detection
+from a loop-tree node (CFG node which begins from a loop header). This allows
+discarding unrepresentable loops early in the scop-detection process, thereby
+discarding SESe surrounding them.  This way, the number of instructions to be
+analyzed for validity reduces to a minimal set.  We start by analyzing those
+statements which are inside a loop, because validity of those statements is
+necessary for the validity of loop. The statements outside the loop nest can be
+just excluded from the SESE if they are not valid.
 
-Since this algorithm starts from the loop header, it would exclude statements
-before the first and after the last loop in an SESE. Also,regions without loops
-maybe excluded if they are not surrounded by loops. In that sense, SCoP detected
-may not be maximal.
+Since all (?)  the optimizations enabled in polyhedral compiler ISL work on loop
+nests (e.g., blocking, interchange, tiling etc.),  or on sibling loops (e.g.,
+fusion), we also discard functions with less than two loops.
 
 \subsection{Preconditions}
 The alogrithm assumes following things to be true.
@@ -366,21 +371,15 @@ The set of scops thus collected have the following properties
 \item Domincance information is preserved.
 \end{enumerate}
 
-With the new approach it is faster to discard invalid loop-nests. Essentially,
-\begin{enumerate}
-\item Discard functions with less than two loops. Since all (?) the
-  optimizations enabled in polyhedral model work on loop nests (e.g., blocking,
-  interchange, tiling etc.).  or on sibling loops (e.g., fusion).
-\item Start the scop detection from a CFG node which begins from a loop
-  header. This way the algorithm analyzes statements which matter most. This
-  allows discarding unrepresentable loops early in the scop-detection process.
-\end{enumerate}
+Since this algorithm starts from the loop header, it would exclude statements
+before the first and after the last loop in an SESE. Also,regions without loops
+maybe excluded if they are not surrounded by loops. In that sense, SCoP detected
+may not be maximal \ref{subsec:maximality}.
 
-\subsection{merging sub-scops to form larger scops}
-We compose larger SCoPs by merging smaller ones at the same loop depth. Even if
-we have analyzed the statements in a sub-scop we need to re-analyze them
-because the scalar evolution of the data references change with the region of the
-program under analysis. For the combined region to be a valid SCoP:
+
+\subsection{Validity checks for a SCoP}
+\label{subsec:validity}
+An SESE region is regarded as a valid scop when it satisfies the following conditions:
 \begin{enumerate}
   \item The entry basic block should have only one predecessor and the exit
     basic block should have only one successsor (i.e. an SESE).
@@ -394,6 +393,19 @@ program under analysis. For the combined region to be a valid SCoP:
     'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
   \item We also limit the number of parameters to a maximum value (set by
     programmer).
+\end{enumerate}
+
+
+
+\subsection{Merging sub-SCoPs}
+We compose larger SCoPs by merging smaller ones at the same loop depth. Even if
+we have analyzed the statements in a sub-scop we need to re-analyze them
+because the scalar evolution of the data references change with the region of the
+program under analysis. In order to merge two SESEs to form a new SESE:
+\label{subsec:merge-sese}
+\begin{enumerate}
+\item Find a common dominator with a single entry.
+\item Find a common post-dominator with a single exit.
 \end{enumerate}
 
 \subsection{complexity of algorithm}
