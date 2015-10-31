@@ -374,6 +374,12 @@ merge_sese (first, second):
       loop_depth (exit->dest->loop_father))
     return invalid_sese;
 
+  // Entry and Exit should not be part of an
+  // irreducible loop.
+  if (entry.flag == EDGE_IRREDUCIBLE_LOOP
+      or exit.flag == EDGE_IRREDUCIBLE_LOOP)
+    return invalid_sese
+
   combined = new_sese (entry, exit)
   if (entry does not dominate exit
       or exit does not post-dominate entry
@@ -413,6 +419,8 @@ get_nearest_pdom_with_single_exit (bb):
 \caption{Merging two SESE regions}
 \label{fig:merge-sese}
 \end{figure}
+
+% FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
 
 % FIXME: Check code in GCC and correct definition of
 % get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
