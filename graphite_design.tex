@@ -288,11 +288,11 @@ the surrounding conditions and extract constraints on the parameters.
 
 To illustrate our point, consider the maximal SCoP in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
-satisfies the properties of a SCoP.  It only contains a single loop, Loop1.  All
-the other basic blocks IfCondition, TrueRegion, FalseRegion, and EndIf add extra
-overhead to the polyhedral compilation without real benefit in terms of adding
-opportunities for loop optimizations.  Having a SCoP only containing Loop1 would
-prove more beneficial in terms of optimizations and overall compilation time.
+satisfies the properties of a SCoP.  It only contains a single loop.  All the
+other blocks IfCondition, TrueRegion, and EndIf add extra overhead to the
+polyhedral compilation without real benefit in terms of adding opportunities for
+loop optimizations.  Having a SCoP only containing Loop1 would prove more
+beneficial in terms of optimizations and overall compilation time.
 
 \begin{figure}
 \centering
@@ -300,11 +300,11 @@ prove more beneficial in terms of optimizations and overall compilation time.
 \digraph[scale=0.5]{abc}{
 BeforeSESE -> IfCondition
 IfCondition -> TrueRegion
-IfCondition -> FalseRegion
-FalseRegion ->Loop1
-Loop1 -> EndIf
+IfCondition -> LoopHeader
+LoopHeader -> LoopLatch
+LoopLatch -> LoopHeader
+LoopHeader -> EndIf
 TrueRegion -> EndIf
-FalseRegion -> EndIf
 EndIf -> AfterSESE
 }
 \caption{An SESE bounded by IfCondition and EndIf}
@@ -384,6 +384,8 @@ merge_sese (first, second):
 ncd: the nearest common dominator
 ncpd: the nearest common post-dominator
 get_nearest_dom_with_single_entry (bb):
+  if (bb has 1 predecessor e)
+    return e
   if (bb has 2 predecessors e1 and e2)
     {
       if (e1.src dominates e2.src)
@@ -391,11 +393,12 @@ get_nearest_dom_with_single_entry (bb):
       if (e2.src dominates e1.src)
         return e2;
     }
-  while (number of predecessors of bb != 1)
-    bb = get_immediate_dominator (bb)
-  return single predecessor edge
+  bb = get_immediate_dominator (bb)
+  return get_nearest_dom_with_single_entry (bb)
 
 get_nearest_pdom_with_single_exit (bb):
+  if (bb has 1 successor e)
+    return e
   if (bb has 2 successors e1 and e2)
     {
       if (e1.dest post dominates e2.dest)
@@ -403,14 +406,17 @@ get_nearest_pdom_with_single_exit (bb):
       if (e2.dest post dominates e1.dest)
         return e2;
     }
-  while (number of successors of bb != 1)
-    bb = get_immediate_post_dominator (bb)
-  return single successors edge
+  bb = get_immediate_post_dominator (bb)
+  return get_nearest_pdom_with_single_exit (bb)
 
 \end{verbatim}
 \caption{Merging two SESE regions}
 \label{fig:merge-sese}
 \end{figure}
+
+% FIXME: Check code in GCC and correct definition of
+% get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
+% match the better version here in the paper.
 
 The traversal of the natural loops tree starts at a loop-nest at depth one.  The
 code inside the loop and all its nested loops are analyzed recursively for
