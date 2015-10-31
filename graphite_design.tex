@@ -270,8 +270,8 @@ SESE region discovery, the use of dominance frontiers may have quadratic
 behavior in some cases.  The algorithm described in this paper may help in
 reducing the cost of the SESE region analysis by replacing the use of dominance
 frontiers with a simpler check based on the natural loops properties of depth
-levels (see Figure-\ref{fig:merge-sese}) and regions of the CFG corresponding to
-irreducible loops, as we will see in the next section.
+levels and regions of the CFG corresponding to irreducible loops, see
+Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-scop-detection}.
 
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
@@ -312,6 +312,7 @@ EndIf -> AfterSESE
 \end{figure}
 
 \section{A new faster SCoP detection to select relevant loop nests}
+\label{sec:new-scop-detection}
 The new algorithm for SCoP detection works by induction on the structure of the
 natural loops tree.  Section-\ref{subsec:loop-tree} has briefly introduced
 the notion and properties of natural loops used in this paper; we refer our
