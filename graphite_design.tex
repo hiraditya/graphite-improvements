@@ -288,10 +288,11 @@ the surrounding conditions and extract constraints on the parameters.
 
 To illustrate our point, consider the maximal SCoP in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
-satisfies the properties of a SCoP.  It only contains a single loop.  All the
-other blocks IfCondition, TrueRegion, and EndIf add extra overhead to the
-polyhedral compilation without real benefit in terms of adding opportunities for
-loop optimizations.  Having a SCoP only containing Loop1 would prove more
+satisfies the properties of a SCoP, and contains a single loop composed of a
+LoopHeader and a LoopLatch.  All the other blocks of a maximal SCoP
+IfCondition, TrueRegion, and EndIf add extra overhead to the polyhedral
+compilation without real benefit in terms of adding opportunities for loop
+optimizations.  Having a SCoP only containing the loop would prove more
 beneficial in terms of optimizations and overall compilation time.
 
 \begin{figure}
