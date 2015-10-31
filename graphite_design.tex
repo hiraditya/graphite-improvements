@@ -258,7 +258,7 @@ SCoP and the SCoP detection would split these two loops into two distinct SCoPs.
 This limitation has been removed in GCC 6.0 by the improvements to the scop
 detection described later in this paper.
 
-\subsection{Polly scop detection: a region based SCoP detection}
+\subsection{Polly SCoP detection: based on SESE region tree}
 
 Polly's scop detection is based on an analysis of SESE regions.  The discovery
 of all the regions in a function may be expensive, specially when the number of
@@ -270,33 +270,41 @@ frontiers with a simpler check based on the natural loop depth levels.
 
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
-A Maximal SCoP is the largest such SCoP which cannot be extended further. This
-concept is used in LLVM \cite{polly} and in previous graphite implementation
-\cite{graphite}.  Since the main focus of polyhedral optimizations is the loops
-and code surrounding it, finding a maximal SCoP might introduce branches which
-are not related to loops. Consider the region in Figure-\ref{fig:maximality}.
-In the figure, the `IfCondition' and `TrueRegion' just add extra code to the
-polyhedral analysis and transformations if there are no loops in it. Having just
-the `Loop1' as SCoP would prove more beneficial in terms of optimizations and
-overall compile time.
+A maximal SCoP is the largest region satisfying all the properties of a SCoP and
+which cannot be further extended.  This concept is currently used in Polly
+\cite{polly} and was used in the previous SCoP detection of graphite
+\cite{graphite}.
+
+Since the main focus in the polyhedral model is the transformation of loops, all
+code translated in the polyhedral model that is not part of a loop, or part of a
+sequence of loops, only constitues an overhead in compilation time.  Finding and
+representing a maximal SCoP is not necessary as it is possible to analyze all
+the surrounding conditions and extract constraints on the parameters.
+
+To illustrate our point, consider the maximal SCoP in
+Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
+satisfies the properties of a SCoP.  It only contains a single loop, Loop1.  All
+the other basic blocks IfCondition, TrueRegion, FalseRegion, and EndIf add extra
+overhead to the polyhedral compilation without real benefit in terms of adding
+opportunities for loop optimizations.  Having a SCoP only containing Loop1 would
+prove more beneficial in terms of optimizations and overall compilation time.
 
 \begin{figure}
 \centering
 %rankdir=LR;
 \digraph[scale=0.5]{abc}{
+BeforeSESE -> IfCondition
 IfCondition -> TrueRegion
 IfCondition -> FalseRegion
 FalseRegion ->Loop1
-Loop1 -> EndProgram
-TrueRegion -> EndProgram
-FalseRegion ->EndProgram
+Loop1 -> EndIf
+TrueRegion -> EndIf
+FalseRegion -> EndIf
+EndIf -> AfterSESE
 }
-\caption{An SESE bounded by IfCondition and EndProgram}
+\caption{An SESE bounded by IfCondition and EndIf}
 \label{fig:maximality}
 \end{figure}
-
-Also, regions with no loops are not very interesting from a production
-compiler's point of view where compile time is at a premium.
 
 \section{A new faster scop detection to select relevant loop nests}
 The new algorithm iterates on the loop tree (Section-\ref{subsec:loop-tree})
