@@ -318,7 +318,6 @@ The new algorithm for SCoP detection works by induction on the structure of the
 natural loops tree.  Section-\ref{subsec:loop-tree} has briefly introduced
 the notion and properties of natural loops used in this paper; we refer our
 readers to \cite{dragonbook} for an in-depth description of natural loops.
-
 It assumes following preconditions during the SCoP detection:
 \begin{itemize}
 \item The loop tree represents a reducible CFG.
@@ -441,10 +440,6 @@ get_nearest_pdom_with_single_exit (bb):
 
 % FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
 
-% FIXME: Check code in GCC and correct definition of
-% get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
-% match the better version here in the paper.
-
 The traversal of the natural loops tree starts at a loop-nest at depth one.  The
 code inside the loop and all its nested loops are analyzed recursively for
 validity, as described in Section-\ref{subsec:validity} and
@@ -513,18 +508,32 @@ conditions:
   (can be changed by the programmer).
 \end{enumerate}
 
-
+% FIXME: Check code in GCC and correct definition of
+% get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
+% match the better version here in the paper.
 
 \subsection{Merging sub-SCoPs}
 \label{subsec:merge-sese}
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
-SESEs to form a new SESE, we find the nearest common dominator with single entry
-and a nearest common post-dominator with single exit. After such entry and exit
-have been found the combined region has to be analyzed for validity. Even if we
-have analyzed the statements in a sub-scop we need to re-analyze them because
-the scalar evolution of the data references change with the region of the
-program under analysis.  If either such entry or exit could not be found, the
-algorithm does not combine the SESEs and keeps them as two separate SCoPs.
+SESEs to form a new SESE, we find the nearest common dominator ($dom1$) and the
+nearest common post-dominator ($pdom1$) to form a new region. After that we find
+the nearest dominator of $dom1$ with a single entry because we want to build an
+SESE. We iterate on the dominator tree until we find such basic block.  If any
+of the dominators has two predecessors but one of them is a back edge, then that
+basic block also qualifies as a dominator with single entry.  Similarly, we find
+nearest post-dominator of $pdom1$ with single exit. For this, we iterate on the
+post-dominator tree until we find such basic block. If any of the
+post-dominators has two successor but one of them is a back edge, then that
+basic block also qualifies as post-dominator with a single exit. The idea is to
+find an entry which dominates the exit and an exit which post-dominates the
+entry (Section-\ref{subsec:validity}).
+
+After such entry and exit have been found the combined region has to be analyzed
+for validity. Even if we have analyzed the statements in a sub-SCoP, we need to
+re-analyze them because the scalar evolution of the data references change with
+the region of the program under analysis.  If either such entry or exit could
+not be found, the algorithm does not combine the SESEs and keeps them as two
+separate SCoPs.
 
 \subsection{Analysis of the SCoP detection algorithms}
 The previous implementation of SCoP detection in Graphite and the existing
