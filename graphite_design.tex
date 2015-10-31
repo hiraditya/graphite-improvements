@@ -415,12 +415,12 @@ discarding unrepresentable loops early in the scop-detection process, thereby
 discarding SESE region surrounding them.  This way, the number of instructions
 to be analyzed for validity reduces to a minimal set.  We start by analyzing
 those statements which are inside a loop, because validity of those statements
-is necessary for the validity of loop. The statements outside the loop nest can
-be just excluded from the SESE if they are not valid. Since this algorithm
-starts from the loop header, it could exclude statements before the first, and
-after the last loop in an SESE. Also, regions without loops maybe excluded if
-they are not surrounded by loops. In that sense, SCoPs thus detected, may not be
-maximal (Section-\ref{subsec:maximality}).
+is necessary for the validity of loop.  The statements outside the loop nest can
+be excluded from the SESE if they are not valid.  Since this algorithm starts
+from the loop header, it could exclude statements before the first, and after
+the last loop in an SESE.  Also, regions without loops may be excluded if they
+are not surrounded by loops.  SCoPs thus detected are not maximal, in contrast
+with the example and discussion in Section-\ref{subsec:maximality}.
 
 The optimizations enabled in polyhedral compiler ISL mostly work on loop
 nests (e.g., blocking, interchange, tiling etc.), or on sibling loops (e.g.,
