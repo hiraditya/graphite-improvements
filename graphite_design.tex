@@ -103,10 +103,10 @@ transformed in a polyhedral compilation.
 \begin{enumerate}
   \item We present a new algorithm for SCoP detection, that improves over the
     existing techniques of extracting SCoPs from a low level intermediate
-    representation,
+    representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
     in Graphite, the SCoP detection as implemented in LLVM-Polly, and the new
-    SCoP detection that we implemented and integrated in GCC 6.0,
+    SCoP detection that we implemented and integrated in GCC 6.0.
   \item We provide an analysis of the shape of SCoPs detected by these three
     algorithms in terms of number of SCoPs detected in benchmarks, and number of
     loops per SCoP.
@@ -156,22 +156,10 @@ information about specific aspects of the program through program analysis:
   and $next$ loop relations.  The function body is represented as a loop at the
   root of the loop tree, and its depth is zero.  The depth of inner loops is one
   more than their parent, and sibling loops linked through $next$ are at the
-  same depth.  When the CFG contains an SCC not reducible to a natural loop, for
-  example two back-edges pointing back to a same basic block, all the edges and
-  nodes of the CFG involved in that SCC are marked with a flag IRREDUCIBLE\_LOOP.
-
-  % Do we really need to document this?  Are you using this property in the rest of the paper?
-  %The root node has in-degree of 0, all other loop nodes have in-degree of one.
-  % -- This we can remove but we need to mention that an outer loop only points to one inner loop
-  % -- where all inner loops are connected by $next$ relation.
-
-  % Same questions here.  If you need to speak about reducibility, you have to define it:
-  %A CFG is said to be reducible when ...
-
-  % Every reducible control flow graph can be represented as a loop tree.
-  % -- I wanted to mention this only to show that 'almost' all programs can be analyzed for
-  % -- scop detection just by using loop-tree. Such that there would be no question on
-  % -- coverage of programs w.r.t. the new algorithm.
+  same depth.  When the CFG contains an SCC that is not reducible to a natural
+  loop, for example two back-edges pointing back to a same basic block, all the
+  edges and nodes of the CFG involved in that SCC are marked with a flag
+  IRREDUCIBLE\_LOOP.
 
 \item Static Single Assignment (SSA) form \cite{cytron}, inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
@@ -247,22 +235,21 @@ effects in statements, and to gather more costly information about the number of
 iterations, the linearity of memory access functions and condition expressions.
 
 \subsection{Former algorithm for SCoP detection in Graphite}
-
+\label{subsec:graphite-scop}
 The first Graphite SCoP detection algorithm was implemented on a very low level
-representation of CFG and DOM \cite{trifunovic}.  These representations were
-too restrictive for
-the scev analysis to be able to determine the loops to be considered as variant
-and the loops that have to be considered as invariant, in which the scev
-analysis should not analyze and instantiate further scalar variables in order to
-consider them as parameters.  This resulted in a very restrictive limitation of
-SCoPs that had to have one full loop fully contained in the SCoP: for instance a
-sequence of two loops with no surrounding loop would not be represented as a
-SCoP and the SCoP detection would split these two loops into two distinct SCoPs.
-This limitation has been removed in GCC 6.0 by the improvements to the scop
-detection described later in this paper.
+representation of CFG and DOM \cite{trifunovic}.  These representations were too
+restrictive for the scev analysis to be able to determine the loops to be
+considered as variant and the loops that have to be considered as invariant, in
+which the scev analysis should not analyze and instantiate further scalar
+variables in order to consider them as parameters.  This resulted in a very
+restrictive limitation of SCoPs that had to have one full loop fully contained
+in the SCoP: for instance a sequence of two loops with no surrounding loop would
+not be represented as a SCoP and the SCoP detection would split these two loops
+into two distinct SCoPs.  This limitation has been removed in GCC 6.0 by the
+improvements to the scop detection described later in this paper.
 
 \subsection{Polly SCoP detection: based on SESE region tree}
-
+\label{subsec:polly-scop}
 Polly's scop detection is based on an analysis of SESE regions.  The discovery
 of all the regions in a function may be expensive, specially when the number of
 basic blocks in its CFG is very large.  In the current LLVM implementation of
@@ -558,12 +545,17 @@ inform that the merge was unsuccessful.
 
 \subsection{Analysis of the SCoP detection algorithms}
 The previous implementation of SCoP detection in Graphite and the existing
-LLVM-Polly implementation are linear in the number of CFG edges, $O(Edges)$.
+LLVM-Polly implementation are linear in the number of CFG edges, $O(Edges)$
+\cite{sese} because they discover regions by walking on the DOM, see
+Section-\ref{subsec:graphite-scop}, and Section-\ref{subsec:polly-scop}. This can
+be very expensive when the function body is large, specially with aggressive
+inlining.
 
-The new algorithm is linear in the number of loops. If we consider how natural
-loops are implemented in the intermediate level in GCC as well as LLVM, we need
-at least two basic blocks for representing a loop. In that sense the complexity
-of this algorithm is $O(Loop Count) < O(Basic Blocks) <= O(Edges)$
+The new algorithm is linear in the number of loops, $O(Loop Count)$, as it
+iterates on the loop-tree. If we consider how natural loops are implemented in
+the intermediate level in GCC as well as LLVM, we need at least two basic blocks
+for representing a loop. In that sense the complexity of this algorithm is
+$O(Loop Count) < O(Basic Blocks) <= O(Edges)$
 
 This helps discard invalid regions quickly. However, while analyzing statements
 in an SESE for validity, all of the algorithms above, have to analyze each
