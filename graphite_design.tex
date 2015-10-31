@@ -202,7 +202,9 @@ information about specific aspects of the program through program analysis:
 \item The analysis of the number of iterations \cite{scev} provides a scev that
   represents the number of times a loop is executed.  The number of iterations
   is computed as the scev of a close phi node, or last value, of a scev starting
-  at zero and incremented by one at each iteration of the loop.
+  at zero and incremented by one at each iteration of the loop.  The number of
+  iterations can also be computed by ISL, as we provide the scevs of all the
+  variables involved in each condition that we translate.
 
 \item Pointer analysis detects base and access functions for all memory
   locations that are accessed in the program.
