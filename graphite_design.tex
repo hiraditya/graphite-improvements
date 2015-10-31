@@ -315,10 +315,15 @@ EndIf -> AfterSESE
 \section{A new faster SCoP detection to select relevant loop nests}
 \label{sec:new-scop-detection}
 The new algorithm for SCoP detection works by induction on the structure of the
-natural loops tree.  Section-\ref{subsec:loop-tree} has briefly introduced
-the notion and properties of natural loops used in this paper; we refer our
-readers to \cite{dragonbook} for an in-depth description of natural loops.
-It assumes following preconditions during the SCoP detection:
+natural loops tree as described in Section-\ref{subsec:induction} and listed in
+Figure-\ref{fig:induction}.  The traversal of the loop tree tries to enlarge a
+region by attaching adjacent or outer valid regions as described in
+Section-\ref{subsec:merge-sese} and listed in Figure-\ref{fig:merge-sese}.
+Section-\ref{subsec:loop-tree} has a brief introduction to the notion and
+properties of natural loops, dominators, and post-dominators properties used in
+this section; we refer our readers to \cite{dragonbook} for an in-depth discussion.
+
+The algorithm assumes following preconditions during the SCoP detection:
 \begin{itemize}
 \item The loop tree represents a reducible CFG.
 \item All the loops are in closed SSA form. Since GCC does not guarantee
@@ -334,6 +339,10 @@ The alias analysis, dominance, and scalar evolution are already available in
 GCC.  We recalculate the DOM because we canonicalize each loop before detecting
 the SCoPs.  Since SCoP detection is like an analysis pass, it preserves the DOM,
 alias, and the scalar evolution of data references.
+
+
+\subsection{Induction on the structure of natural loops}
+\label{subsec:induction}
 
 \begin{figure}
 \begin{verbatim}
@@ -371,74 +380,6 @@ build_scop_breadth (s1, loop):
 \caption{Induction on the natural loop tree}
 \label{fig:induction}
 \end{figure}
-
-\begin{figure}
-\begin{verbatim}
-merge_sese (first, second):
-  ncd: the nearest common dominator
-  ncpd: the nearest common post-dominator
-  dom = ncd (first.entry, second.entry)
-  pdom = ncpd (first.exit, second.exit)
-  entry = get_nearest_dom_with_single_entry (dom)
-  if (!entry)
-    return invalid_sese
-  exit = get_nearest_pdom_with_single_exit (pdom)
-  if (!exit)
-    return invalid_sese;
-
-  // Entry and exit should be in the same loop.
-  // Otherwise, the region may contain edges
-  // entering or leaving the region, violating
-  // the Single Entry Single Exit property.
-  if (loop_depth (entry->src->loop_father) !=
-      loop_depth (exit->dest->loop_father))
-    return invalid_sese;
-
-  // Entry and Exit should not be part of an
-  // irreducible loop.
-  if (entry.flag == EDGE_IRREDUCIBLE_LOOP
-      or exit.flag == EDGE_IRREDUCIBLE_LOOP)
-    return invalid_sese
-
-  combined = new_sese (entry, exit)
-  if (entry does not dominate exit
-      or exit does not post-dominate entry
-      or combined is an invalid scop)
-    return invalid_sese
-  return combined
-
-get_nearest_dom_with_single_entry (bb):
-  if (bb has 1 predecessor e)
-    return e
-  if (bb has 2 predecessors e1 and e2)
-    {
-      if (e1.src dominates e2.src)
-        return e1;
-      if (e2.src dominates e1.src)
-        return e2;
-    }
-  bb = get_immediate_dominator (bb)
-  return get_nearest_dom_with_single_entry (bb)
-
-get_nearest_pdom_with_single_exit (bb):
-  if (bb has 1 successor e)
-    return e
-  if (bb has 2 successors e1 and e2)
-    {
-      if (e1.dest post dominates e2.dest)
-        return e1;
-      if (e2.dest post dominates e1.dest)
-        return e2;
-    }
-  bb = get_immediate_post_dominator (bb)
-  return get_nearest_pdom_with_single_exit (bb)
-
-\end{verbatim}
-\caption{Merging two SESE regions}
-\label{fig:merge-sese}
-\end{figure}
-
-% FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
 
 The traversal of the natural loops tree starts at a loop-nest at depth one.  The
 code inside the loop and all its nested loops are analyzed recursively for
@@ -515,6 +456,75 @@ conditions:
 
 \subsection{Merging SCoPs}
 \label{subsec:merge-sese}
+
+\begin{figure}
+\begin{verbatim}
+merge_sese (first, second):
+  ncd: the nearest common dominator
+  ncpd: the nearest common post-dominator
+  dom = ncd (first.entry, second.entry)
+  pdom = ncpd (first.exit, second.exit)
+  entry = get_nearest_dom_with_single_entry (dom)
+  if (!entry)
+    return invalid_sese
+  exit = get_nearest_pdom_with_single_exit (pdom)
+  if (!exit)
+    return invalid_sese;
+
+  // Entry and exit should be in the same loop.
+  // Otherwise, the region may contain edges
+  // entering or leaving the region, violating
+  // the Single Entry Single Exit property.
+  if (loop_depth (entry->src->loop_father) !=
+      loop_depth (exit->dest->loop_father))
+    return invalid_sese;
+
+  // Entry and Exit should not be part of an
+  // irreducible loop.
+  if (entry.flag == EDGE_IRREDUCIBLE_LOOP
+      or exit.flag == EDGE_IRREDUCIBLE_LOOP)
+    return invalid_sese
+
+  combined = new_sese (entry, exit)
+  if (entry does not dominate exit
+      or exit does not post-dominate entry
+      or combined is an invalid scop)
+    return invalid_sese
+  return combined
+
+get_nearest_dom_with_single_entry (bb):
+  if (bb has 1 predecessor e)
+    return e
+  if (bb has 2 predecessors e1 and e2)
+    {
+      if (e1.src dominates e2.src)
+        return e1;
+      if (e2.src dominates e1.src)
+        return e2;
+    }
+  bb = get_immediate_dominator (bb)
+  return get_nearest_dom_with_single_entry (bb)
+
+get_nearest_pdom_with_single_exit (bb):
+  if (bb has 1 successor e)
+    return e
+  if (bb has 2 successors e1 and e2)
+    {
+      if (e1.dest post dominates e2.dest)
+        return e1;
+      if (e2.dest post dominates e1.dest)
+        return e2;
+    }
+  bb = get_immediate_post_dominator (bb)
+  return get_nearest_pdom_with_single_exit (bb)
+
+\end{verbatim}
+\caption{Merging two SESE regions}
+\label{fig:merge-sese}
+\end{figure}
+
+% FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
+
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
 SESEs to form a new SESE, we find the nearest common dominator ($dom1$) and the
 nearest common post-dominator ($pdom1$) to form a new region. After that we find
