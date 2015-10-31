@@ -285,6 +285,14 @@ detection described later in this paper.
 
 \subsection{Polly scop detection: a region based SCoP detection}
 
+Polly's scop detection is based on an analysis of SESE regions.  The discovery
+of all the regions in a function may be expensive, specially when the number of
+basic blocks in its CFG is very large.  In the current LLVM implementation of
+SESE region discovery, the use of dominance frontiers may have quadratic
+behavior in some cases.  The algorithm described in this paper may help in
+reducing the cost of the SESE region analysis by replacing the use of dominance
+frontiers with a simpler check based on the natural loop depth levels.
+
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
 A Maximal SCoP is the largest such SCoP which cannot be extended further. This
