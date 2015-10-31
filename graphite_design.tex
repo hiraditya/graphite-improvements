@@ -518,14 +518,14 @@ conditions:
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
 SESEs to form a new SESE, we find the nearest common dominator ($dom1$) and the
 nearest common post-dominator ($pdom1$) to form a new region. After that we find
-the nearest dominator of $dom1$ with a single entry because we want to build an
+the nearest dominator of $dom1$ with single entry because we want to build an
 SESE. We iterate on the dominator tree until we find such basic block.  If any
 of the dominators has two predecessors but one of them is a back edge, then that
 basic block also qualifies as a dominator with single entry.  Similarly, we find
 nearest post-dominator of $pdom1$ with single exit. For this, we iterate on the
 post-dominator tree until we find such basic block. If any of the
-post-dominators has two successor but one of them is a back edge, then that
-basic block also qualifies as post-dominator with a single exit. The idea is to
+post-dominators has two successors but one of them is a back edge, then that
+basic block also qualifies as post-dominator with single exit. The idea is to
 find an entry which dominates the exit and an exit which post-dominates the
 entry (Section-\ref{subsec:validity}).
 
