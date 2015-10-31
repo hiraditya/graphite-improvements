@@ -319,6 +319,23 @@ natural loops tree.  Section-\ref{subsec:loop-tree} has briefly introduced
 the notion and properties of natural loops used in this paper; we refer our
 readers to \cite{dragonbook} for an in-depth description of natural loops.
 
+It assumes following preconditions during the SCoP detection:
+\begin{itemize}
+\item The loop tree represents a reducible CFG.
+\item All the loops are in closed SSA form. Since GCC does not guarantee
+loops to be in closed SSA form, we canonicalize each loop in closed SSA form
+before starting the SCoP detection process.
+\item Alias information is available.
+\item Dominance information is available.
+\item Mechanism to compute scalar evolution of a variable, in a region, is
+  available.
+\end{itemize}
+
+The alias analysis, dominance, and scalar evolution are already available in
+GCC.  We recalculate the DOM because we canonicalize each loop before detecting
+the SCoPs.  Since SCoP detection is like an analysis pass, it preserves the DOM,
+alias, and the scalar evolution of data references.
+
 \begin{figure}
 \begin{verbatim}
 build_scop_depth (s1, loop):
@@ -432,56 +449,43 @@ The traversal of the natural loops tree starts at a loop-nest at depth one.  The
 code inside the loop and all its nested loops are analyzed recursively for
 validity, as described in Section-\ref{subsec:validity} and
 Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
-the loop-nest becomes a valid scop.  After a valid loop is found, the algorithm
+the loop-nest becomes a valid SCoP and it is saved in a set of
+already found SCoPs. While adding a new SCoP to the set of detected SCoPs, we
+first remove any SCoP which are either a sub-SCoP (completely surrounded) or
+intersects (partially overlaps), with the new one. The way algorithm runs, from
+bottom up for each loop nest, any new SCoP to be added cannot be subsumed by an
+existing SCoP in the set. This way, the set of SCoPs maintained in the set are
+mutually exclusive w.r.t. the regions they span i.e., no SCoP interset with
+another in the set of detected SCoPs.
+
+After a valid loop is found, the algorithm
 analyzes the next loop, a loop at same depth and immediate sibling of the loop
 just analyzed.  If an adjacent loop is found to be a valid SCoP, we try to merge
 both loop nests as described in Section-\ref{subsec:merge-sese} and
-Figure-\ref{fig:merge-sese} by analyzing the combined region for validity.  If
-the combined region represents a valid SCoP, then the combined SESE is saved and
-further analysis is continued to extend the SCoP again.  If the combined SESE is
-not a valid SCoP then the first SCoP is saved and analsis starts by trying to
-extend the second SCoP.
+Figure-\ref{fig:merge-sese} by analyzing the combined region for validity.
+If the combined region represent a valid SCoP, then the combined SESE
+(Section-\ref{subsec:merge-sese}) is saved, after removing any intersecting or
+sub-SCoPs, and further analysis is continued
+to extend the SCoP again. If the combined SESE is not a valid SCoP then the
+analysis continues by trying to extend the second SCoP.
 
-While adding a new SCoP to the set of detected SCoPs, we first remove any SCoP
-subsumed by the new one. This way, the SCoPs detected are mutually exclusive
-w.r.t. the regions they span i.e., no SCoP interset with another in the set of
-detected SCoPs.
-
-With the new approach it is faster to discard invalid loop-nests very early. The
-algorithm analyzes statements which matter most by starting the scop detection
+With the new approach it is faster to discard many invalid loop-nests early. The
+algorithm analyzes statements which matter most by starting the SCoP detection
 from a loop-tree node (CFG node which begins from a loop header). This allows
 discarding unrepresentable loops early in the scop-detection process, thereby
-discarding SESE surrounding them.  This way, the number of instructions to be
-analyzed for validity reduces to a minimal set.  We start by analyzing those
-statements which are inside a loop, because validity of those statements is
-necessary for the validity of loop. The statements outside the loop nest can be
-just excluded from the SESE if they are not valid. Since this algorithm starts
-from the loop header, it would exclude statements before the first, and after
-the last loop in an SESE. Also, regions without loops maybe excluded if they are
-not surrounded by loops. In that sense, SCoPs thus detected, may not be maximal
-(Section-\ref{subsec:maximality}).
+discarding SESE region surrounding them.  This way, the number of instructions
+to be analyzed for validity reduces to a minimal set.  We start by analyzing
+those statements which are inside a loop, because validity of those statements
+is necessary for the validity of loop. The statements outside the loop nest can
+be just excluded from the SESE if they are not valid. Since this algorithm
+starts from the loop header, it could exclude statements before the first, and
+after the last loop in an SESE. Also, regions without loops maybe excluded if
+they are not surrounded by loops. In that sense, SCoPs thus detected, may not be
+maximal (Section-\ref{subsec:maximality}).
 
 The optimizations enabled in polyhedral compiler ISL mostly work on loop
 nests (e.g., blocking, interchange, tiling etc.), or on sibling loops (e.g.,
 fusion), so we discard functions with less than two loops.
-
-\subsection{Preconditions}
-The alogrithm assumes following things to be true:
-\begin{enumerate}
-\item The loop tree represents a reducible CFG.
-\item All the loops are in closed SSA form. Since GCC does not guarantee
-loops to be in closed SSA form, we canonicalize each loop in closed SSA form
-before starting the SCoP detection process.
-\item Alias information is available.
-\item Dominance information is available.
-\item Mechanism to compute scalar evolution of a variable, in a region, is
-  available.
-\end{enumerate}
-
-The alias analysis, dominance, and scalar evolution are already available in
-GCC.  We recalculate the DOM because we canonicalize each loop before detecting
-the SCoPs.  Since SCoP detection is like an Analysis pass, it preserves the DOM,
-alias, and the scalar evolution of data references.
 
 \subsection{Validity checks for a SCoP}
 \label{subsec:validity}
@@ -504,9 +508,9 @@ conditions:
   should not overflow.
 \item The loop nests in SESE should have at least one data reference.
 \item The SCoP should have at least one data reference and no more than
-  'MAX\_DATA\_REFERENCE' (a parameter which can be set by the user).
-\item We also limit the number of parameters to a maximum value (set by
-  programmer).
+  `MAX\_DATA\_REFERENCE' (a parameter which can be changed by the programmer).
+\item We also limit the number of parameters to be less than `MAX\_NUM\_PARAMS'
+  (can be changed by the programmer).
 \end{enumerate}
 
 
@@ -519,7 +523,7 @@ and a nearest common post-dominator with single exit. After such entry and exit
 have been found the combined region has to be analyzed for validity. Even if we
 have analyzed the statements in a sub-scop we need to re-analyze them because
 the scalar evolution of the data references change with the region of the
-program under analysis.  If either such entry or exit could not be found the
+program under analysis.  If either such entry or exit could not be found, the
 algorithm does not combine the SESEs and keeps them as two separate SCoPs.
 
 \subsection{Analysis of the SCoP detection algorithms}
