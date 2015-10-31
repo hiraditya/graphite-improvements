@@ -149,13 +149,16 @@ information about specific aspects of the program through program analysis:
   The SESE regions may contain sub regions that have the SESE property: this
   inclusion relation is represented as a tree.
 
-\item Natural loops \cite{dragonbook} are detected as strongly connected
 \label{subsec:loop-tree}
-  components \cite{tarjan} on the CFG, loop nesting and sequence are represented
-  under the form of a tree: loop nodes are linked with $inner$ loop, and $next$
-  loop relations.  The function body is represented as a loop at the root of the
-  loop tree, and its depth is zero.  The depth of inner loops is one more than
-  their parent, and sibling loops linked through $next$ are at the same depth.
+\item Natural loops \cite{dragonbook} are detected as strongly connected
+  components (SCC) \cite{tarjan} on the CFG, loop nesting and sequence are
+  represented under the form of a tree: loop nodes are linked with $inner$ loop,
+  and $next$ loop relations.  The function body is represented as a loop at the
+  root of the loop tree, and its depth is zero.  The depth of inner loops is one
+  more than their parent, and sibling loops linked through $next$ are at the
+  same depth.  When the CFG contains an SCC not reducible to a natural loop, for
+  example two back-edges pointing back to a same basic block, all the edges and
+  nodes of the CFG involved in that SCC are marked with a flag IRREDUCIBLE\_LOOP.
 
   % Do we really need to document this?  Are you using this property in the rest of the paper?
   %The root node has in-degree of 0, all other loop nodes have in-degree of one.
@@ -266,7 +269,9 @@ basic blocks in its CFG is very large.  In the current LLVM implementation of
 SESE region discovery, the use of dominance frontiers may have quadratic
 behavior in some cases.  The algorithm described in this paper may help in
 reducing the cost of the SESE region analysis by replacing the use of dominance
-frontiers with a simpler check based on the natural loop depth levels.
+frontiers with a simpler check based on the natural loops properties of depth
+levels (see Figure-\ref{fig:merge-sese}) and regions of the CFG corresponding to
+irreducible loops, as we will see in the next section.
 
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
@@ -306,20 +311,120 @@ EndIf -> AfterSESE
 \label{fig:maximality}
 \end{figure}
 
-\section{A new faster scop detection to select relevant loop nests}
-The new algorithm iterates on the loop tree (Section-\ref{subsec:loop-tree})
-nodes which is a higher level abstraction as compared to CFG. The traversal
-starts at a loop-nest at depth one.  The code inside the loop and all its nested
-loops are analyzed recursively for validity
-(Section-\ref{subsec:validity}). Once all the validity constraints are
-satisfied, the loop-nest becomes a valid scop. Once a valid loop is found the
-algorithm analyzes the `next' loop (loop at same depth and immediate sibling of
-the loop just analyzed). If an adjacent loop is found to be a valid SCoP as well
-then we try to merge both loop nests by analyzing the combined region for
-validity. If the combined region represent a valid SCoP then the combined SESE
-(Section-\ref{subsec:merge-sese}) is saved and further analysis is continued to
-extend the SCoP again. If the combined SESE is not a valid SCoP then the first
-SCoP is saved and analsis starts by trying to extend the second SCoP.
+\section{A new faster SCoP detection to select relevant loop nests}
+The new algorithm for SCoP detection works by induction on the structure of the
+natural loops tree.  Section-\ref{subsec:loop-tree} has briefly introduced
+the notion and properties of natural loops used in this paper; we refer our
+readers to \cite{dragonbook} for an in-depth description of natural loops.
+
+\begin{figure}
+\begin{verbatim}
+build_scop_depth (s1, loop):
+  s1 = build_scop_depth (s1, loop->inner)
+  s2 = merge_sese (s1, get_sese (loop))
+  if (s2 is an invalid scop)
+    {
+      // s1 might be a valid scop, so return it
+      // and start analyzing from the adjacent loop.
+      build_scop_depth (invalid_sese, loop->next)
+      return s1
+    }
+  if (loop is an invalid scop in s2)
+    return build_scop_depth (invalid_sese, loop->next)
+  return build_scop_breadth (s2, loop)
+
+build_scop_breadth (s1, loop):
+  sese_l s2 = build_scop_depth (invalid_sese, loop->next)
+  if (s2 is an invalid scop)
+    {
+      if (s1 is a valid scop)
+        add_scop (s1)
+      return s1
+    }
+  combined = merge_sese (s1, s2)
+  if (combined is a valid scop)
+    s1 = combined
+  else
+    add_scop (s2)
+  if (s1 is a valid scop)
+    add_scop (s1)
+  return s1
+\end{verbatim}
+\caption{Induction on the natural loop tree}
+\label{fig:induction}
+\end{figure}
+
+\begin{figure}
+\begin{verbatim}
+merge_sese (first, second):
+  dom = ncd (first.entry, second.entry)
+  pdom = ncpd (first.exit, second.exit)
+  entry = get_nearest_dom_with_single_entry (dom)
+  if (!entry)
+    return invalid_sese
+  exit = get_nearest_pdom_with_single_exit (pdom)
+  if (!exit)
+    return invalid_sese;
+
+  // Entry and exit should be in the same loop.
+  // Otherwise, the region may contain edges
+  // entering or leaving the region, violating
+  // the Single Entry Single Exit property.
+  if (loop_depth (entry->src->loop_father) !=
+      loop_depth (exit->dest->loop_father))
+    return invalid_sese;
+
+  combined = new_sese (entry, exit)
+  if (entry does not dominate exit
+      or exit does not post-dominate entry
+      or combined is an invalid scop)
+    return invalid_sese
+  return combined
+
+ncd: the nearest common dominator
+ncpd: the nearest common post-dominator
+get_nearest_dom_with_single_entry (bb):
+  if (bb has 2 predecessors e1 and e2)
+    {
+      if (e1.src dominates e2.src)
+        return e1;
+      if (e2.src dominates e1.src)
+        return e2;
+    }
+  while (number of predecessors of bb != 1)
+    bb = get_immediate_dominator (bb)
+  return single predecessor edge
+
+get_nearest_pdom_with_single_exit (bb):
+  if (bb has 2 successors e1 and e2)
+    {
+      if (e1.dest post dominates e2.dest)
+        return e1;
+      if (e2.dest post dominates e1.dest)
+        return e2;
+    }
+  while (number of successors of bb != 1)
+    bb = get_immediate_post_dominator (bb)
+  return single successors edge
+
+\end{verbatim}
+\caption{Merging two SESE regions}
+\label{fig:merge-sese}
+\end{figure}
+
+The traversal of the natural loops tree starts at a loop-nest at depth one.  The
+code inside the loop and all its nested loops are analyzed recursively for
+validity, as described in Section-\ref{subsec:validity} and
+Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
+the loop-nest becomes a valid scop.  After a valid loop is found, the algorithm
+analyzes the next loop, a loop at same depth and immediate sibling of the loop
+just analyzed.  If an adjacent loop is found to be a valid SCoP, we try to merge
+both loop nests as described in Section-\ref{subsec:merge-sese} and
+Figure-\ref{fig:merge-sese} by analyzing the combined region for validity.  If
+the combined region represents a valid SCoP, then the combined SESE is saved and
+further analysis is continued to extend the SCoP again.  If the combined SESE is
+not a valid SCoP then the first SCoP is saved and analsis starts by trying to
+extend the second SCoP.
 
 While adding a new SCoP to the set of detected SCoPs, we first remove any SCoP
 subsumed by the new one. This way, the SCoPs detected are mutually exclusive
