@@ -503,16 +503,17 @@ conditions:
   should not overflow.
 \item The loop nests in SESE should have at least one data reference.
 \item The SCoP should have at least one data reference and no more than
-  `MAX\_DATA\_REFERENCE' (a parameter which can be changed by the programmer).
-\item We also limit the number of parameters to be less than `MAX\_NUM\_PARAMS'
-  (can be changed by the programmer).
+  `MAX\_DATA\_REFERENCE', a parameter which can be changed by the programmer.
+\item We also limit the number of parameters, references to variables outside
+  the SCoP, to be less than `MAX\_NUM\_PARAMS'. This can also be can be changed
+  by the programmer.
 \end{enumerate}
 
 % FIXME: Check code in GCC and correct definition of
 % get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
 % match the better version here in the paper.
 
-\subsection{Merging sub-SCoPs}
+\subsection{Merging SCoPs}
 \label{subsec:merge-sese}
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
 SESEs to form a new SESE, we find the nearest common dominator ($dom1$) and the
