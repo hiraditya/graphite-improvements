@@ -357,6 +357,8 @@ build_scop_breadth (s1, loop):
 \begin{figure}
 \begin{verbatim}
 merge_sese (first, second):
+  ncd: the nearest common dominator
+  ncpd: the nearest common post-dominator
   dom = ncd (first.entry, second.entry)
   pdom = ncpd (first.exit, second.exit)
   entry = get_nearest_dom_with_single_entry (dom)
@@ -387,8 +389,6 @@ merge_sese (first, second):
     return invalid_sese
   return combined
 
-ncd: the nearest common dominator
-ncpd: the nearest common post-dominator
 get_nearest_dom_with_single_entry (bb):
   if (bb has 1 predecessor e)
     return e
