@@ -395,7 +395,7 @@ evolution of the data references change with the region of the program under
 analysis. If the combined SESE represents a valid SCoP, then it is saved, after
 removing any intersecting or sub-SCoPs, and further analysis is continued to
 extend the SCoP again.  If no such SESE could be found, the algorithm keeps them
-as two separate SCoPs continues by trying to extend the second SCoP.
+as two separate SCoPs, and continues by trying to extend the second SCoP.
 
 With the new approach it is faster to discard many invalid loop-nests early. The
 algorithm analyzes statements which matter most by starting the SCoP detection
@@ -418,7 +418,7 @@ with the example and discussion in Section-\ref{subsec:maximality}.
 %nests (e.g., blocking, interchange, tiling etc.), or on sibling loops (e.g.,
 %fusion), so we discard functions with less than two loops.
 
-\subsection{Validity checks for a SCoP}
+\subsection{When is an SESE region a valid SCoP?}
 \label{subsec:validity}
 An SESE region is regarded as a valid SCoP when it satisfies the following
 conditions:
@@ -427,17 +427,18 @@ conditions:
   basic block should have only one successsor (i.e., an SESE).
 \item The entry should dominate the exit.
 \item The exit should post-dominate the entry.
-\item The scalar evolution of all the operands in the new region should be affine.
+\item All the loops in the SESE should have single exits.
+\item The scalar evolution of all memory accesses and conditional expressions
+  should be affine.
 \item All the statements inside the region should be reprepresentable in the
-  polyhedral model.  Only labels, pure function calls, assignments and
-  comparison operations on integers are allowed.
+  polyhedral model.  For example, labels, pure function calls, assignments and
+  comparison operations on integer types are allowed.
 \item It should be possible to represent induction variables (of all the loops)
   as signed integers because ISL might generate negative values in the optimized
   expressions which needs to be code-generated.
-\item All the loops in the SESE should have single exits.
-\item The number of iterations of the loops in SESE should be deterministic and
-  should not overflow.
-\item The loop nests in SESE should have at least one data reference.
+%\item The number of iterations of the loops in SESE should be deterministic and
+% should not overflow.
+%\item The loop nests in SESE should have at least one data reference.
 %\item The SCoP should have at least one data reference
 %and no more than
 %  `MAX\_DATA\_REFERENCE', a parameter which can be changed by the programmer.
@@ -529,27 +530,29 @@ get_nearest_pdom_with_single_exit (bb):
 % match the better version here in the paper.
 
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
-SESEs (Figure-\ref{fig:merge-sese} to form a new SESE, we find the nearest
-common dominator $dom1$ and the nearest common post-dominator $pdom1$ to form a
-new region. After that we find the nearest dominator of $dom1$ with single entry
-because we want to build an SESE.  We iterate on the dominator tree until we
-find such basic block, as described in Figure-\ref{fig:iterate-single-entry}.
-If any of the dominators has two predecessors but one of them is a back edge,
-then that basic block also qualifies as a dominator with single entry.
-Similarly, we find nearest post-dominator of $pdom1$ with single exit. For this,
-we iterate on the post-dominator tree until we find such basic block. If any of
-the post-dominators has two successors but one of them is a back edge, then that
-basic block also qualifies as post-dominator with single exit.
+SESEs, as described in Figure-\ref{fig:merge-sese}, to form a new SESE, we
+search the nearest common dominator $dom$ and the nearest common post-dominator
+$pdom$ to form a new region.  After that we find the nearest dominator of $dom$
+with single entry because we want to build an SESE.  We iterate on the dominator
+tree until we find such basic block, as described in
+Figure-\ref{fig:iterate-single-entry}.  If any of the dominators has two
+predecessors but one of them is a back edge, then that basic block also
+qualifies as a dominator with single entry.  Similarly, we find nearest
+post-dominator of $pdom$ with single exit.  For this, we iterate on the
+post-dominator tree until we find such basic block.  If any of the
+post-dominators has two successors but one of them is a back edge, then that
+basic block also qualifies as a post-dominator with a single exit.
 
-After such entry and exit edges have been found, we check if the entry basic
-block of the region, which is the destination of the entry edge $entry.dest$
-dominates the exit basic block of the region, which is the source basic block of
-the exit edge $exit.src$. Similarly, $exit.src$ should post-dominate the
-$entry.dest$. Also, the bounding basic blocks viz., source basic block of the
-entry edge and the destination basic block of exit edge, should belong to the
-same loop depth. It is possible to continue extending the region by finding
-edges satisfying both these conditions, although for now the algorithm choses
-to bail out.  We would like to extend this functionality in the future.
+After such entry and exit edges have been found, we check whether the entry
+basic block of the region, which is the destination of the entry edge
+$entry.dest$ dominates the exit basic block of the region, which is the source
+basic block of the exit edge $exit.src$.  Similarly, $exit.src$ should
+post-dominate the $entry.dest$.  Also, the bounding basic blocks viz., source
+basic block of the entry edge and the destination basic block of exit edge,
+should belong to the same loop depth.  It is possible to continue extending the
+region by finding edges satisfying both these conditions, although for now the
+algorithm choses to bail out.  We would like to extend this functionality in the
+future.
 
 If all the previous contraints are satisfied, the algorithm returns a larger
 SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
@@ -579,6 +582,14 @@ invalid SCoP because it focuses on the structure of the natural loops first
 rather than the validity of each statement.
 
 \section{Experimental Results}
+
+To compare against the existing SCoP detection algorithms, we set up two
+experiments: first we look at a static metric consisting in counting the number
+of SCoPs and the number of loops in those SCoPs discovered on a set of
+benchmarks known to contain loops that benefit from polyhedral compilation.
+Then we evaluate how much time the compiler spends on trying to find SCoPs
+containing meaningful loop nests to be optimized in the polyhedral compilation
+on a large code-base.
 
 \subsection{SCoP metrics}
 To validate our changes to the Graphite framework, replacing the old SCoP
@@ -612,7 +623,7 @@ which the scop detection applies are radically different.
 \begin{enumerate}
   \item There were no regressions in Graphite while moving from the old to the
     new SCoP detection: $316 - 207 = 109$ loops with only one loop per SCoP.
-  \item Removing limit-SCoPs discovers larger SCoPs, i.e., from 2.59 to 6.09
+  \item Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$
     loops per SCoP.
 \end{enumerate}
 
