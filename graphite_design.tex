@@ -579,22 +579,28 @@ invalid SCoP because it focuses on the structure of the natural loops first
 rather than the validity of each statement.
 
 \section{Experimental Results}
-On Polybench:
-\subsection{Original SCoP detection implementation in Graphite}
-189 SCoPs, max loops/SCoP 8, min loops/SCoP 1: 109 SCoPs with 1 loop/SCoP, 316
-loops in SCoPs, 1.67 loops/SCoP without 1loop/SCoP, 80 SCoPs contain 207 loops
-(2.59 loops/SCoP)
+To validate our changes to the Graphite framework, replacing the old SCoP
+detection algorithm with the new one, we evaluate the number of SCoPs and number
+of loops per SCoP discovered on the Polybench \cite{polybench}.
 
-\subsection{SCoP detection algorithm in LLVM-Polly}
-Since the pretty-printer of Polly does not print number of loops in SCoPs detected,
-we had to patch the source code to get the results.
-Number of SCoPs detected: 30, max loops/SCoP 11, min loops/SCoP 2: 3 SCoPs with
-2 loops/SCoP, 155 loops in SCoPs, 5.17 loops/SCoP
-
-
-\subsection{The new SCoP detection in Graphite}
-34 SCoPs, max loops/SCoP 17, min loops/SCoP 2: 7 SCoPs with 2 loops/SCoP, 207
-loops in SCoPs, 6.09 loops/SCoP
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+      \hline
+      Metric                   & New  & Old  & Polly  \\
+      \hline
+      Number of SCoPs          & 34   & 189  & 30     \\
+      Max loops/SCoP           & 17   & 8    & 11     \\
+      Min loops/SCoP           & 2    & 1    & 2      \\
+      Number of SCoPs with min & 7    & 109  & 3      \\
+      Number of loops in SCoPs & 207  & 316  & 155    \\
+      Loops/SCoP               & 6.09 & 2.59 & 5.17   \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{SCoP metrics.}
+  \label{tab:table1}
+\end{table}
 
 Observations:
 \begin{enumerate}
