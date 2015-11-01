@@ -581,7 +581,12 @@ rather than the validity of each statement.
 \section{Experimental Results}
 To validate our changes to the Graphite framework, replacing the old SCoP
 detection algorithm with the new one, we evaluate the number of SCoPs and number
-of loops per SCoP discovered on the Polybench \cite{polybench}.
+of loops per SCoP discovered on the Polybench \cite{polybench}.  We also provide
+the same metrics for Polly, and we intentionally do not provide conclusions
+based on these metrics because a fair comparison on these metrics is difficult:
+the pass ordering and level in the pass pipeline at which Graphite and Polly
+apply are very different, and so the shapes of the CFG and natural loops tree on
+which the scop detection applies are radically different.
 
 \begin{table}[h!]
   \begin{center}
@@ -602,11 +607,10 @@ of loops per SCoP discovered on the Polybench \cite{polybench}.
   \label{tab:table1}
 \end{table}
 
-Observations:
 \begin{enumerate}
-  \item No regressions new/original SCoP detection, the new algorithm discovers
-    larger SCoPs (316 - 207 = 109).
-  \item Removing limit-SCoPs discovers larger SCoPs i.e., from 2.59 to 6.09
+  \item There were no regressions in Graphite while moving from the old to the
+    new SCoP detection: $316 - 207 = 109$ loops with only one loop per SCoP.
+  \item Removing limit-SCoPs discovers larger SCoPs, i.e., from 2.59 to 6.09
     loops per SCoP.
 \end{enumerate}
 
