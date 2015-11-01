@@ -134,7 +134,7 @@ information about specific aspects of the program through program analysis:
   edges of the CFG correspond to the jumps between basic blocks.
 
 \item The basic block dominator (DOM) and post-dominator (Post-DOM) trees
-  \cite{dragonbook} represent the relation between basic blocks with respect to
+  \cite{dragonbook, ramalingam} represent the relation between basic blocks with respect to
   the control flow properties of the program: a basic block A is said to
   dominate another basic block B when all execution paths from the beginning of
   the function have to pass through A before reaching B.  Similarly, the
@@ -150,7 +150,7 @@ information about specific aspects of the program through program analysis:
   inclusion relation is represented as a tree.
 
 \label{subsec:loop-tree}
-\item Natural loops \cite{dragonbook} are detected as strongly connected
+\item Natural loops \cite{dragonbook, ramalingam} are detected as strongly connected
   components (SCC) \cite{tarjan} on the CFG, loop nesting and sequence are
   represented under the form of a tree: loop nodes are linked with $inner$ loop,
   and $next$ loop relations.  The function body is represented as a loop at the
@@ -308,7 +308,8 @@ region by attaching adjacent or outer valid regions as described in
 Section-\ref{subsec:merge-sese} and listed in Figure-\ref{fig:merge-sese}.
 Section-\ref{subsec:loop-tree} has a brief introduction to the notion and
 properties of natural loops, dominators, and post-dominators properties used in
-this section; we refer our readers to \cite{dragonbook} for an in-depth discussion.
+this section; we refer our readers to \cite{ramalingam} for an in-depth
+discussion.
 
 The algorithm assumes following preconditions during the SCoP detection:
 \begin{itemize}
@@ -423,12 +424,12 @@ An SESE region is regarded as a valid SCoP when it satisfies the following
 conditions:
 \begin{enumerate}
 \item The entry basic block should have only one predecessor and the exit
-  basic block should have only one successsor (i.e. an SESE).
+  basic block should have only one successsor (i.e., an SESE).
 \item The entry should dominate the exit.
 \item The exit should post-dominate the entry.
 \item The scalar evolution of all the operands in the new region should be affine.
 \item All the statements inside the region should be reprepresentable in the
-  polyhedral mode.  Only labels, pure function calls, assignments and
+  polyhedral model.  Only labels, pure function calls, assignments and
   comparison operations on integers are allowed.
 \item It should be possible to represent induction variables (of all the loops)
   as signed integers because ISL might generate negative values in the optimized
@@ -443,10 +444,6 @@ conditions:
   the SCoP, to be less than `MAX\_NUM\_PARAMS'. This can also be can be changed
   by the programmer.
 \end{enumerate}
-
-% FIXME: Check code in GCC and correct definition of
-% get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
-% match the better version here in the paper.
 
 \subsection{Merging SCoPs}
 \label{subsec:merge-sese}
@@ -485,7 +482,15 @@ merge_sese (first, second):
       or combined is an invalid scop)
     return invalid_sese
   return combined
+\end{verbatim}
+\caption{Merging two SESE regions}
+\label{fig:merge-sese}
+\end{figure}
 
+% FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
+
+\begin{figure}
+\begin{verbatim}
 get_nearest_dom_with_single_entry (bb):
   if (bb has 1 predecessor e)
     return e
@@ -511,13 +516,15 @@ get_nearest_pdom_with_single_exit (bb):
     }
   bb = get_immediate_post_dominator (bb)
   return get_nearest_pdom_with_single_exit (bb)
-
 \end{verbatim}
-\caption{Merging two SESE regions}
-\label{fig:merge-sese}
+\caption{Iterative computation of a single entry dominator and a single exit
+  post-dominator}
 \end{figure}
 
-% FIXME: Add checks in GCC for IRREDUCIBLE_LOOP.
+
+% FIXME: Check code in GCC and correct definition of
+% get_nearest_pdom_with_single_exit and get_nearest_dom_with_single_entry to
+% match the better version here in the paper.
 
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
 SESEs (Figure-\ref{fig:merge-sese} to form a new SESE, we find the nearest
