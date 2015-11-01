@@ -575,8 +575,8 @@ instantiation point changes, and thus the scevs of inner or lower regions become
 invalid under the new instantiation point, and have to be analyzed again.
 
 The new SCoP detection algorithm helps analyze fewer statements in case of an
-invalid SCoP because it focuses on the structure of the CFG first rather than
-the validity of each statement.
+invalid SCoP because it focuses on the structure of the natural loops first
+rather than the validity of each statement.
 
 \section{Experimental Results}
 On Polybench:
