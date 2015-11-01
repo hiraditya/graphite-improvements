@@ -438,11 +438,12 @@ conditions:
 \item The number of iterations of the loops in SESE should be deterministic and
   should not overflow.
 \item The loop nests in SESE should have at least one data reference.
-\item The SCoP should have at least one data reference and no more than
-  `MAX\_DATA\_REFERENCE', a parameter which can be changed by the programmer.
-\item We also limit the number of parameters, references to variables outside
-  the SCoP, to be less than `MAX\_NUM\_PARAMS'. This can also be can be changed
-  by the programmer.
+%\item The SCoP should have at least one data reference
+%and no more than
+%  `MAX\_DATA\_REFERENCE', a parameter which can be changed by the programmer.
+%\item We also limit the number of parameters, references to variables outside
+%  the SCoP, to be less than `MAX\_NUM\_PARAMS'. This can also be can be changed
+%  by the programmer.
 \end{enumerate}
 
 \subsection{Merging SCoPs}
@@ -495,7 +496,7 @@ get_nearest_dom_with_single_entry (bb):
   if (bb has 1 predecessor e)
     return e
   if (bb has 2 predecessors e1 and e2)
-    {
+    { // Check for a back-edge
       if (e1.src dominates e2.src)
         return e1;
       if (e2.src dominates e1.src)
@@ -508,7 +509,7 @@ get_nearest_pdom_with_single_exit (bb):
   if (bb has 1 successor e)
     return e
   if (bb has 2 successors e1 and e2)
-    {
+    { // Check for a back-edge
       if (e1.dest post dominates e2.dest)
         return e1;
       if (e2.dest post dominates e1.dest)
@@ -519,6 +520,7 @@ get_nearest_pdom_with_single_exit (bb):
 \end{verbatim}
 \caption{Iterative computation of a single entry dominator and a single exit
   post-dominator}
+\label{fig:iterate-single-entry}
 \end{figure}
 
 
@@ -528,27 +530,26 @@ get_nearest_pdom_with_single_exit (bb):
 
 We compose a larger SESE by merging two smaller SCoPs. In order to merge two
 SESEs (Figure-\ref{fig:merge-sese} to form a new SESE, we find the nearest
-common dominator ($dom1$) and the nearest common post-dominator ($pdom1$) to
-form a new region. After that we find the nearest dominator of $dom1$ with
-single entry because we want to build an SESE. We iterate on the dominator tree
-until we find such basic block.  If any of the dominators has two predecessors
-but one of them is a back edge, then that basic block also qualifies as a
-dominator with single entry.  Similarly, we find nearest post-dominator of
-$pdom1$ with single exit. For this, we iterate on the post-dominator tree until
-we find such basic block. If any of the post-dominators has two successors but
-one of them is a back edge, then that basic block also qualifies as
-post-dominator with single exit.
+common dominator $dom1$ and the nearest common post-dominator $pdom1$ to form a
+new region. After that we find the nearest dominator of $dom1$ with single entry
+because we want to build an SESE.  We iterate on the dominator tree until we
+find such basic block, as described in Figure-\ref{fig:iterate-single-entry}.
+If any of the dominators has two predecessors but one of them is a back edge,
+then that basic block also qualifies as a dominator with single entry.
+Similarly, we find nearest post-dominator of $pdom1$ with single exit. For this,
+we iterate on the post-dominator tree until we find such basic block. If any of
+the post-dominators has two successors but one of them is a back edge, then that
+basic block also qualifies as post-dominator with single exit.
 
 After such entry and exit edges have been found, we check if the entry basic
-block of the region, which is the destination of the entry edge ($entry.dest$)
+block of the region, which is the destination of the entry edge $entry.dest$
 dominates the exit basic block of the region, which is the source basic block of
-the exit edge ($exit.src$). Similarly, $exit.src$ should post-dominate the
+the exit edge $exit.src$. Similarly, $exit.src$ should post-dominate the
 $entry.dest$. Also, the bounding basic blocks viz., source basic block of the
 entry edge and the destination basic block of exit edge, should belong to the
-same loop depth. It is possible to continue extending the region unless it finds
-edges which satisfies both these conditions but for now the algorithm choses to
-bail out (Figure-\ref{fig:merge-sese}). We would like to extend this
-functionality in future.
+same loop depth. It is possible to continue extending the region by finding
+edges satisfying both these conditions, although for now the algorithm choses
+to bail out.  We would like to extend this functionality in the future.
 
 If all the previous contraints are satisfied, the algorithm returns a larger
 SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
