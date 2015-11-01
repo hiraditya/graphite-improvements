@@ -631,9 +631,8 @@ which the scop detection applies are radically different.
 The current timing infrastructure of gcc isn't precise enough to benchmark
 portions of passes which are non-dominating on the overall compile time.  On a
 current x86\_64 machine the compilation time spent in Graphite was a fraction of
-a second for each benchmark compiled from the Polybench.  We used Valgrind to
-get more precise data on the number of instructions executed by the SCoP
-detection algorithms.
+a second for each benchmark in Polybench.  We used Valgrind to get more precise
+data on the number of instructions executed by the SCoP detection algorithms.
 
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
@@ -643,9 +642,9 @@ structure allows us to quickly discard uninteresting regions.
 
 Currently, while merging two SCoPs, we try to find an SESE enclosing both.
 There are techniques to add basic blocks and form SESE enclosing the SCoPs if no
-such SESE was found.  We would like to add this functionality in future.  Since
-this would have further impact on compile time we would like to do this only on
-hot code paths by using the profile information.
+such SESE was found.  We would like to add this functionality in the future.
+Since this would have further impact on compile time we would like to do this
+only on hot code paths by using the profile information.
 
 \section{Acknowledgements}
 We would like to thank Samsung Austin Research and Development Center for
