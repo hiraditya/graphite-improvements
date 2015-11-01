@@ -235,7 +235,7 @@ effects in statements, and to gather more costly information about the number of
 iterations, the linearity of memory access functions and condition expressions.
 
 \subsection{Former algorithm for SCoP detection in Graphite}
-\label{subsec:graphite-scop}
+\label{subsec:graphite-SCoP}
 The first Graphite SCoP detection algorithm was implemented on a very low level
 representation of CFG and DOM \cite{trifunovic}.  These representations were too
 restrictive for the scev analysis to be able to determine the loops to be
@@ -246,11 +246,11 @@ restrictive limitation of SCoPs that had to have one full loop fully contained
 in the SCoP: for instance a sequence of two loops with no surrounding loop would
 not be represented as a SCoP and the SCoP detection would split these two loops
 into two distinct SCoPs.  This limitation has been removed in GCC 6.0 by the
-improvements to the scop detection described later in this paper.
+improvements to the SCoP detection described later in this paper.
 
 \subsection{Polly SCoP detection: based on SESE region tree}
-\label{subsec:polly-scop}
-Polly's scop detection is based on an analysis of SESE regions.  The discovery
+\label{subsec:polly-SCoP}
+Polly's SCoP detection is based on an analysis of SESE regions.  The discovery
 of all the regions in a function may be expensive, specially when the number of
 basic blocks in its CFG is very large.  In the current LLVM implementation of
 SESE region discovery, the use of dominance frontiers may have quadratic
@@ -258,7 +258,7 @@ behavior in some cases.  The algorithm described in this paper may help in
 reducing the cost of the SESE region analysis by replacing the use of dominance
 frontiers with a simpler check based on the natural loops properties of depth
 levels and regions of the CFG corresponding to irreducible loops, see
-Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-scop-detection}.
+Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-SCoP-detection}.
 
 \subsection{Maximal SCoPs and why they might not be very useful}
 \label{subsec:maximality}
@@ -300,7 +300,7 @@ EndIf -> AfterSESE
 \end{figure}
 
 \section{A new faster SCoP detection to select relevant loop nests}
-\label{sec:new-scop-detection}
+\label{sec:new-SCoP-detection}
 The new algorithm for SCoP detection works by induction on the structure of the
 natural loops tree as described in Section-\ref{subsec:induction} and listed in
 Figure-\ref{fig:induction}.  The traversal of the loop tree tries to enlarge a
@@ -400,7 +400,7 @@ as two separate SCoPs continues by trying to extend the second SCoP.
 With the new approach it is faster to discard many invalid loop-nests early. The
 algorithm analyzes statements which matter most by starting the SCoP detection
 from a loop-tree node (CFG node which begins from a loop header). This allows
-discarding unrepresentable loops early in the scop-detection process, thereby
+discarding unrepresentable loops early in the SCoP-detection process, thereby
 discarding SESE region surrounding them.  This way, the number of instructions
 to be analyzed for validity reduces to a minimal set.  We start by analyzing
 those statements which are inside a loop, because validity of those statements
@@ -556,51 +556,51 @@ SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
 inform that the merge was unsuccessful.
 
 \subsection{Analysis of the SCoP detection algorithms}
-The new algorithm is linear in the number of loops, as it iterates on the
+The new algorithm is linear in the number of loops as it iterates on the
 natural loops tree.  The number of calls to the dominators and post-dominators
 is also linear in the number of loops.
 
 The previous implementation of SCoP detection in Graphite is linear in the
-number of CFG edges because it discovers regions by walking on the CFG.  In the
+number of CFG edges as it discovers regions by walking on the CFG.  In the
 implementation of Polly, the use of iterated dominanace frontiers to build the
 region trees may lead to quadratic behavior in some cases \cite{ramalingam}.
 This can be expensive when the function body is large, specially with aggressive
 inlining.
 
 The complexity of the validity function is still a point that could be improved
-in all the scop detection algorithms: every statement of the SESE has to be
-validated.  When a scop is extended upwards, either including in the larger
+in all the SCoP detection algorithms: every statement of the SESE has to be
+validated.  When a SCoP is extended upwards, either including in the larger
 region sequential loops, or going from an inner loop to an outer loop, the scev
 instantiation point changes, and thus the scevs of inner or lower regions become
 invalid under the new instantiation point, and have to be analyzed again.
 
-The new scop detection algorithm helps analyze fewer statements in case of an
+The new SCoP detection algorithm helps analyze fewer statements in case of an
 invalid SCoP because it focuses on the structure of the CFG first rather than
 the validity of each statement.
 
 \section{Experimental Results}
 On Polybench:
-\subsection{Original scop detection implementation in Graphite}
-189 scops, max loops/scop 8, min loops/scop 1: 109 scops with 1 loop/scop, 316
-loops in scops, 1.67 loops/scop without 1loop/scop, 80 scops contain 207 loops
-(2.59 loops/scop)
+\subsection{Original SCoP detection implementation in Graphite}
+189 SCoPs, max loops/SCoP 8, min loops/SCoP 1: 109 SCoPs with 1 loop/SCoP, 316
+loops in SCoPs, 1.67 loops/SCoP without 1loop/SCoP, 80 SCoPs contain 207 loops
+(2.59 loops/SCoP)
 
-\subsection{Scop detection algorithm in LLVM-Polly}
+\subsection{SCoP detection algorithm in LLVM-Polly}
 Since the pretty-printer of Polly does not print number of loops in SCoPs detected,
 we had to patch the source code to get the results.
-Number of scops detected: 30, max loops/scop 11, min loops/scop 2: 3 scops with
-2 loops/scop, 155 loops in scops, 5.17 loops/scop
+Number of SCoPs detected: 30, max loops/SCoP 11, min loops/SCoP 2: 3 SCoPs with
+2 loops/SCoP, 155 loops in SCoPs, 5.17 loops/SCoP
 
 
-\subsection{The new scop detection in Graphite}
-34 scops, max loops/scop 17, min loops/scop 2: 7 scops with 2 loops/scop, 207
-loops in scops, 6.09 loops/scop
+\subsection{The new SCoP detection in Graphite}
+34 SCoPs, max loops/SCoP 17, min loops/SCoP 2: 7 SCoPs with 2 loops/SCoP, 207
+loops in SCoPs, 6.09 loops/SCoP
 
 Observations:
 \begin{enumerate}
-  \item No regressions new/original scop detection, the new algorithm discovers
-    larger scops (316 - 207 = 109).
-  \item Removing limit-scops discovers larger scops i.e., from 2.59 to 6.09
+  \item No regressions new/original SCoP detection, the new algorithm discovers
+    larger SCoPs (316 - 207 = 109).
+  \item Removing limit-SCoPs discovers larger SCoPs i.e., from 2.59 to 6.09
     loops per SCoP.
 \end{enumerate}
 
@@ -627,6 +627,12 @@ is certainly not desirable to modify the original program during the analysis
 phase of any optimization pass. We would try to address this in future.  Also,
 we would try to find ways to experimentally verify effectiveness of our
 algorithm.
+
+\section{Acknowledgements}
+We would like to thank Samsung Austin Research and Development Center for
+supporting our work on improving Graphite and Polly.  We would also like to
+thank Tobias Grosser, Johannes Doerfert, and Michael Kruse for discussions about
+how to improve the existing SCoP detection in Polly.
 
 \bibliographystyle{abbrv}
 {\small
