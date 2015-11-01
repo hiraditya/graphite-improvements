@@ -330,7 +330,6 @@ GCC.  We recalculate the DOM because we canonicalize each loop before detecting
 the SCoPs.  Since SCoP detection is like an analysis pass, it preserves the DOM,
 alias, and the scalar evolution of data references.
 
-
 \subsection{Induction on the structure of natural loops}
 \label{subsec:induction}
 
@@ -381,7 +380,7 @@ first remove any SCoP which are either a sub-SCoP (completely surrounded) or
 intersects (partially overlaps), with the new one. The way algorithm runs, from
 bottom up for each loop nest, any new SCoP to be added cannot be subsumed by an
 existing SCoP in the set. This way, the set of SCoPs maintained in the set are
-mutually exclusive w.r.t. the regions they span i.e., no SCoP interset with
+mutually exclusive w.r.t. the regions they span i.e., no SCoP intersect with
 another in the set of detected SCoPs.
 
 After a valid loop is found, the algorithm analyzes the next loop, a loop at
@@ -392,11 +391,10 @@ SESE has been found, which subsumes both the SCoPs, it is analyzed for
 validity. Even if we have already analyzed the statements in the combined SESE
 in their respective sub-SCoPs, we need to re-analyze them because the scalar
 evolution of the data references change with the region of the program under
-analysis. If the combined SESE represents a valid SCoP, then it is
-(Section-\ref{subsec:merge-sese}) is saved, after removing any intersecting or
-sub-SCoPs, and further analysis is continued to extend the SCoP again.
-If no such SESE could be found, the algorithm keeps them as two separate SCoPs
-continues by trying to extend the second SCoP.
+analysis. If the combined SESE represents a valid SCoP, then it is saved, after
+removing any intersecting or sub-SCoPs, and further analysis is continued to
+extend the SCoP again.  If no such SESE could be found, the algorithm keeps them
+as two separate SCoPs continues by trying to extend the second SCoP.
 
 With the new approach it is faster to discard many invalid loop-nests early. The
 algorithm analyzes statements which matter most by starting the SCoP detection
@@ -412,9 +410,12 @@ the last loop in an SESE.  Also, regions without loops may be excluded if they
 are not surrounded by loops.  SCoPs thus detected are not maximal, in contrast
 with the example and discussion in Section-\ref{subsec:maximality}.
 
-The optimizations enabled in polyhedral compiler ISL mostly work on loop
-nests (e.g., blocking, interchange, tiling etc.), or on sibling loops (e.g.,
-fusion), so we discard functions with less than two loops.
+% Let's not mention this restriction in the paper: we may even revisit this for
+% autopar single loops.
+
+%The optimizations enabled in polyhedral compiler ISL mostly work on loop
+%nests (e.g., blocking, interchange, tiling etc.), or on sibling loops (e.g.,
+%fusion), so we discard functions with less than two loops.
 
 \subsection{Validity checks for a SCoP}
 \label{subsec:validity}
