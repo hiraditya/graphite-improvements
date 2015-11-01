@@ -556,22 +556,25 @@ SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
 inform that the merge was unsuccessful.
 
 \subsection{Analysis of the SCoP detection algorithms}
-The previous implementation of SCoP detection in Graphite and the existing
-LLVM-Polly implementation are linear in the number of CFG edges, $O(Edges)$
-\cite{sese} because they discover regions by walking on the DOM, see
-Section-\ref{subsec:graphite-scop}, and Section-\ref{subsec:polly-scop}. This can
-be very expensive when the function body is large, specially with aggressive
+The new algorithm is linear in the number of loops, as it iterates on the
+natural loops tree.  The number of calls to the dominators and post-dominators
+is also linear in the number of loops.
+
+The previous implementation of SCoP detection in Graphite is linear in the
+number of CFG edges because it discovers regions by walking on the CFG.  In the
+implementation of Polly, the use of iterated dominanace frontiers to build the
+region trees may lead to quadratic behavior in some cases \cite{ramalingam}.
+This can be expensive when the function body is large, specially with aggressive
 inlining.
 
-The new algorithm is linear in the number of loops, $O(Loop Count)$, as it
-iterates on the loop-tree. If we consider how natural loops are implemented in
-the intermediate level in GCC as well as LLVM, we need at least two basic blocks
-for representing a loop. In that sense the complexity of this algorithm is
-$O(Loop Count) < O(Basic Blocks) <= O(Edges)$
+The complexity of the validity function is still a point that could be improved
+in all the scop detection algorithms: every statement of the SESE has to be
+validated.  When a scop is extended upwards, either including in the larger
+region sequential loops, or going from an inner loop to an outer loop, the scev
+instantiation point changes, and thus the scevs of inner or lower regions become
+invalid under the new instantiation point, and have to be analyzed again.
 
-This helps discard invalid regions quickly. However, while analyzing statements
-in an SESE for validity, all of the algorithms above, have to analyze each
-statement.  The new algorithm helps analyze fewer statements in case of an
+The new scop detection algorithm helps analyze fewer statements in case of an
 invalid SCoP because it focuses on the structure of the CFG first rather than
 the validity of each statement.
 
