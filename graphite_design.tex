@@ -579,6 +579,8 @@ invalid SCoP because it focuses on the structure of the natural loops first
 rather than the validity of each statement.
 
 \section{Experimental Results}
+
+\subsection{SCoP metrics}
 To validate our changes to the Graphite framework, replacing the old SCoP
 detection algorithm with the new one, we evaluate the number of SCoPs and number
 of loops per SCoP discovered on the Polybench \cite{polybench}.  We also provide
@@ -614,29 +616,25 @@ which the scop detection applies are radically different.
     loops per SCoP.
 \end{enumerate}
 
+\subsection{Compilation time evaluation}
+The current timing infrastructure of gcc isn't precise enough to benchmark
+portions of passes which are non-dominating on the overall compile time.  On a
+current x86\_64 machine the compilation time spent in Graphite was a fraction of
+a second for each benchmark compiled from the Polybench.  We used Valgrind to
+get more precise data on the number of instructions executed by the SCoP
+detection algorithms.
+
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
-time complexity and also detects larger SCoPs w.r.t. both previous Graphite and
-LLVM-Polly implementations. This stems from the fact that operating on a higher
-level data structure allows us to quickly discard uninteresting regions. We
-could not get experimental data on the compile-time improvements during the SCoP
-detection process because it was very difficult to precisely profile only the
-SCoP-detection part of the polyhedral optimization framework. The current timing
-infrastructure of gcc isn't precise enough to benchmark portions of passes which
-are non-dominating on the overall compile time.
+time complexity and also detects larger SCoPs w.r.t. previous Graphite
+implementation.  This stems from the fact that operating on a higher level data
+structure allows us to quickly discard uninteresting regions.
 
-Currently, while merging two SCoPs, we try to find an SESE enclosing both. There
-are techniques to add basic blocks and form SESE enclosing the SCoPs if no such
-SESE was found. We would like to add this functionality in future. Since this
-would have further impact on compile time we would like to do this only on hot
-code paths by using the profile information.
-
-Before starting the SCoP detection process we need to canonicalize loops to
-closed SSA form. While this does not add any extra operations to the program, it
-is certainly not desirable to modify the original program during the analysis
-phase of any optimization pass. We would try to address this in future.  Also,
-we would try to find ways to experimentally verify effectiveness of our
-algorithm.
+Currently, while merging two SCoPs, we try to find an SESE enclosing both.
+There are techniques to add basic blocks and form SESE enclosing the SCoPs if no
+such SESE was found.  We would like to add this functionality in future.  Since
+this would have further impact on compile time we would like to do this only on
+hot code paths by using the profile information.
 
 \section{Acknowledgements}
 We would like to thank Samsung Austin Research and Development Center for
