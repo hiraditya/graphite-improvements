@@ -312,14 +312,17 @@ this section; we refer our readers to \cite{dragonbook} for an in-depth discussi
 
 The algorithm assumes following preconditions during the SCoP detection:
 \begin{itemize}
-\item The loop tree represents a reducible CFG.
-\item All the loops are in closed SSA form. Since GCC does not guarantee
-loops to be in closed SSA form, we canonicalize each loop in closed SSA form
-before starting the SCoP detection process.
-\item Alias information is available.
+\item The natural loops tree represents a reducible CFG: all edges and basic
+  blocks part of an irreducible SCC are tagged with an IRREDUCIBLE\_LOOP flag.
+% I am not sure we need these properties for the scop detection: I think we need
+% this when we start translating to the polyhedral representation.
+
+%\item All the loops are in closed SSA form. Since GCC does not guarantee
+%loops to be in closed SSA form, we canonicalize each loop in closed SSA form
+%before starting the SCoP detection process.
+%\item Alias information is available.
 \item Dominance information is available.
-\item Mechanism to compute scalar evolution of a variable, in a region, is
-  available.
+\item Mechanism to compute the evolution of scalars in a region.
 \end{itemize}
 
 The alias analysis, dominance, and scalar evolution are already available in
@@ -364,7 +367,7 @@ build_scop_breadth (s1, loop):
     add_scop (s1)
   return s1
 \end{verbatim}
-\caption{Induction on the natural loop tree}
+\caption{Induction on the structure of natural loops}
 \label{fig:induction}
 \end{figure}
 
