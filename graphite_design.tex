@@ -327,22 +327,13 @@ discussion.
 The algorithm assumes following preconditions during the SCoP detection:
 \begin{itemize}
 \item The natural loops tree represents a reducible CFG: all edges and basic
-  blocks part of an irreducible SCC are tagged with an IRREDUCIBLE\_LOOP flag.
-% I am not sure we need these properties for the scop detection: I think we need
-% this when we start translating to the polyhedral representation.
-
-%\item All the loops are in closed SSA form. Since GCC does not guarantee
-%loops to be in closed SSA form, we canonicalize each loop in closed SSA form
-%before starting the SCoP detection process.
-%\item Alias information is available.
+  blocks in an irreducible SCC are tagged with an IRREDUCIBLE\_LOOP flag.
 \item Dominance information is available.
 \item Mechanism to compute the evolution of scalars in a region.
 \end{itemize}
 
-The alias analysis, dominance, and scalar evolution are already available in
-GCC.  We recalculate the DOM because we canonicalize each loop before detecting
-the SCoPs.  Since SCoP detection is like an analysis pass, it preserves the DOM,
-alias, and the scalar evolution of data references.
+The natural loops, dominance, and scalar evolution are already available in
+GCC.
 
 \subsection{Induction on the structure of natural loops}
 \label{subsec:induction}
@@ -605,14 +596,14 @@ containing meaningful loop nests to be optimized in the polyhedral compilation
 on a large code-base.
 
 \subsection{SCoP metrics}
-To validate our changes to the Graphite framework, replacing the old SCoP
-detection algorithm with the new one, we evaluate the number of SCoPs and number
-of loops per SCoP discovered on the Polybench \cite{polybench}.  We also provide
-the same metrics for Polly, and we intentionally do not provide conclusions
-based on these metrics because a fair comparison on these metrics is difficult:
-the pass ordering and level in the pass pipeline at which Graphite and Polly
-apply are very different, and so the shapes of the CFG and natural loops tree on
-which the scop detection applies are radically different.
+To validate the impact of our changes to the Graphite framework by replacing the
+old SCoP detection algorithm with the new one, we evaluate the number of SCoPs
+and number of loops per SCoP discovered on the Polybench \cite{polybench}.  We
+also provide the same metrics for Polly, and we intentionally do not provide
+conclusions based on these metrics because a fair comparison on these metrics is
+difficult: the pass ordering and level in the pass pipeline at which Graphite
+and Polly apply are very different, and so the shapes of the CFG and natural
+loops tree on which the scop detection applies are radically different.
 
 \begin{table}[h!]
   \begin{center}
@@ -633,12 +624,13 @@ which the scop detection applies are radically different.
   \label{tab:table1}
 \end{table}
 
-\begin{enumerate}
-  \item There were no regressions in Graphite while moving from the old to the
-    new SCoP detection: $316 - 207 = 109$ loops with only one loop per SCoP.
-  \item Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$
-    loops per SCoP.
-\end{enumerate}
+There were no regressions in Graphite while moving from the old to the new SCoP
+detection: $316 - 207 = 109$ loops with only one loop per SCoP.  The new scop
+detection discards all SCoPs with less than $2$ loops.
+
+Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$ loops
+per SCoP, and now discovers a scop with $17$ loops whereas with the old SCoP
+detection the largest scop only contained $8$ loops.
 
 \subsection{Compilation time evaluation}
 The current timing infrastructure of gcc isn't precise enough to benchmark
