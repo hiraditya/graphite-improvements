@@ -34,8 +34,8 @@ without hurting the compilation time for codes with no loops, or with sparse
 loops that cannot be optimized in the polyhedral model.
 
 The algorithm described in this paper has been implemented and committed to
-GCC 6.0 in preparation to turn on the ISL schedule optimizer by default at ``-O3
--fprofile-use'' for the next 6.x releases of GCC.
+trunk GCC 6.0 in preparation to turn on the ISL schedule optimizer by default at
+``-O3 -fprofile-use'' for the next 6.x releases of GCC.
 \end{abstract}
 
 \section{Introduction}
@@ -104,12 +104,12 @@ the dominators tree on the control flow graph \cite{sese}.
 In order to avoid constructing the region tree, and to help the SCoP detection
 algorithm to faster converge on the parts of code that matter to polyhedral
 compilation, we used an abstraction of the control flow graph, the natural loops
-tree \cite{dragonbook}, together with dominance information.  In terms of
-compilation time, both representations come at zero cost, as they are maintained
-intact and correct between GCC's middle-end optimization passes, lowering the
-compilation cost for the most numerous functions compiled by GCC: functions with
-no loops, or with non contiguous isolated loops that cannot be profitably
-transformed in a polyhedral compilation.
+tree \cite{dragonbook}, together with dominance information \cite{ramalingam}.
+In terms of compilation time, both representations come at zero cost, as they
+are maintained intact and correct between GCC's middle-end optimization passes,
+lowering the compilation cost for the most numerous functions compiled by GCC:
+functions with no loops, or with non contiguous isolated loops that cannot be
+profitably transformed in a polyhedral compilation.
 
 \subsection{Contributions of this paper}
 \begin{enumerate}
@@ -154,11 +154,13 @@ information about specific aspects of the program through program analysis:
   the function: A is said to post-dominate B when all paths from the end of the
   function have to pass through A to reach B in the edge-reversed CFG.
 
-\item The single entry single exit (SESE) regions \cite{sese} are
-  obtained from the CFG and the DOM and Post-DOM trees by identifying contiguous
-  sequences of basic blocks dominated and post-dominated by unique basic blocks.
-  The SESE regions may contain sub regions that have the SESE property: this
-  inclusion relation is represented as a tree.
+\item The single entry single exit (SESE) regions \cite{sese} are obtained from
+  the CFG and the DOM and Post-DOM trees by identifying contiguous sequences of
+  basic blocks dominated and post-dominated by unique basic blocks.  In LLVM the
+  computation of SESE region trees is based on iterated dominance frontier
+  \cite{ramalingam} that can be quadratic in some cases.  The SESE
+  regions may contain sub regions that have the SESE property: this inclusion
+  relation is represented as a tree.
 
 \label{subsec:loop-tree}
 \item Natural loops \cite{dragonbook, ramalingam} are detected as strongly connected
@@ -252,12 +254,12 @@ representation of CFG and DOM \cite{trifunovic}.  These representations were too
 restrictive for the scev analysis to be able to determine the loops to be
 considered as variant and the loops that have to be considered as invariant, in
 which the scev analysis should not analyze and instantiate further scalar
-variables in order to consider them as parameters.  This resulted in a very
-restrictive limitation of SCoPs that had to have one full loop fully contained
-in the SCoP: for instance a sequence of two loops with no surrounding loop would
-not be represented as a SCoP and the SCoP detection would split these two loops
-into two distinct SCoPs.  This limitation has been removed in GCC 6.0 by the
-improvements to the SCoP detection described later in this paper.
+variables in order to consider them as parameters \cite{scev}.  This resulted in
+a very restrictive limitation of SCoPs that had to have one full loop fully
+contained in the SCoP: for instance a sequence of two loops with no surrounding
+loop would not be represented as a SCoP and the SCoP detection would split these
+two loops into two distinct SCoPs.  This limitation has been removed in GCC 6.0
+by the improvements to the SCoP detection described later in this paper.
 
 \subsection{Polly SCoP detection: based on SESE region tree}
 \label{subsec:polly-SCoP}
@@ -275,7 +277,7 @@ Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-SCoP-detection}.
 \label{subsec:maximality}
 A maximal SCoP is the largest region satisfying all the properties of a SCoP and
 which cannot be further extended.  This concept is currently used in Polly
-\cite{polly} and was used in the previous SCoP detection of graphite
+\cite{polly} and was used in the previous SCoP detection of Graphite
 \cite{graphite}.
 
 Since the main focus in the polyhedral model is the transformation of loops, all
