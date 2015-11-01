@@ -24,6 +24,18 @@
 \maketitle
 
 \begin{abstract}
+To enable polyhedral compilation in the default optimization levels of the
+industrial compiler GNU Compiler Collection - GCC, we improved the SCoP
+detection of Graphite in order to make it as fast as possible in terms of
+compilation time.  From the compiler point of view, SCoP detection is on the
+first line of defense to avoid compilation time overhead: it is all about how
+fast we can search for the loops that can be optimized in the polyhedral model
+without hurting the compilation time for codes with no loops, or with sparse
+loops that cannot be optimized in the polyhedral model.
+
+The algorithm described in this paper has been implemented and committed to
+GCC 6.0 in preparation to turn on the ISL schedule optimizer by default at ``-O3
+-fprofile-use'' for the next 6.x releases of GCC.
 \end{abstract}
 
 \section{Introduction}
