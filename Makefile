@@ -14,6 +14,7 @@ clean:
 all: $(paper).pdf
 
 push:
+	git pull --rebase origin scop_detection
 	git push origin scop_detection
 
 dependences:
