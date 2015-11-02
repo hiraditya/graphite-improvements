@@ -639,7 +639,22 @@ compile time.  On a recent x86\_64 machine the overall compilation time spent in
 Graphite was a fraction of a second for each benchmark in Polybench.
 
 We used Valgrind to get more precise data on the number of instructions executed
-by the SCoP detection algorithms.
+by the SCoP detection algorithms.  The command used is:
+\begin{verbatim}
+$ CFLAGS="-Ofast -fgraphite-identity"
+$ valgrind --dsymutil=yes --tool=callgrind \
+    --dump-instr=yes cc1plus $CFLAGS $file
+$ callgrind_annotate --threshold=100 callgrind.out
+\end{verbatim}
+
+The output of callgrind\_annotate lists all the functions in the execution of
+the program together with a count of the number of instructions executed by the
+CPU.  The top-level functions of the old and new SCoP detectors are respectively
+build\_scops and build\_scop\_depth.  On Tramp3d-v4 \cite{richi}, a large C++
+application, the old SCoP detection executed $1583831$ instructions, while the
+new SCoP detection only executed $98822$ instructions, a speedup of $16$ times.
+We also report the speedup in SCoP detection when compiling the $32$ files of
+Polybench, and all the $578$ files of GCC.
 
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
