@@ -40,10 +40,10 @@ trunk GCC 6.0 in preparation to turn on the ISL schedule optimizer by default at
 
 \section{Introduction}
 
-Loop optimizations are usually described on languages like Fortran where loops
+Loop optimizations are usually described for languages like Fortran where loops
 and arrays are well behaved syntactic constructs.  In contrast with Fortran, low
-level languages like C or C++ do not offer the same straight forward ease in
-analysis of loops, induction variables, memory references, and data dependences,
+level languages like C or C++ do not offer the similar ease in the analysis of
+loops, induction variables, memory references, and data dependences, which are
 essential to all high level loop transforms.  Compilers for low level languages
 like GCC and LLVM lower the statements and expressions into low level constructs
 common to all imperative programming languages: loops are represented by their
@@ -54,28 +54,27 @@ level representation by an explicit complex control flow, that was implicit in
 the high level language.
 
 From a practical point of view, optimization passes in compilers like GCC and
-LLVM are implemented on this low level representation, in order to avoid
-duplicating analyses and optimizations for each supported language, and in order
-to abstract away from the specifics of each language: for instance, consider the
-semantics variability of loop statements in Fortran, C, C++, Java, and Ada
-languages, all currently compiled and optimized by the middle-end of GCC.  The
-price paid for the generality of the approach is extra compilation time spent in
-recognizing all the high level loop constructs from the low level
-representation.  This paper describes a fast algorithm to discover, from a low
-level representation, loops that can be handled and optimized by a polyhedral
-compiler.
+LLVM are implemented on this low level intermetdiate representation (IR), in
+order to avoid duplicating analyses and optimizations for each supported
+language, and in order to abstract away from the specifics of each language: for
+instance, consider the semantics variability of loop statements in Fortran, C,
+C++, Java, and Ada languages, all currently compiled and optimized by the
+middle-end of GCC.  The price paid for the generality of the approach is extra
+compilation time spent in recognizing all the high level loop constructs from
+the low level representation.  This paper describes a fast algorithm to
+discover, from a low level representation, loops that can be handled and
+optimized by a polyhedral compiler.
 
 \subsection{What are the boundaries of a SCoP?}
 
 Regions of code that can be handled in the polyhedral model are usually called
-Static Control Parts \cite{Bondhugula}, abbreviated SCoPs.
-Usually, SCoPs may only contain regular
-control flow void of exceptions or other constructs that may provoke changes in
-control flow such as condition expressions dependent on data read from memory or
-side effects of function calls.  As the compiler cannot easily handle such
-constructs in the polyhedral model, these statements will not be integrated in a
-SCoP, causing a split of the region containing such difficult statements into
-two SCoPs.
+Static Control Parts \cite{Bondhugula}, abbreviated as SCoPs.  Usually, SCoPs
+may only contain regular control flow void of exceptions or other constructs
+that may provoke changes in control flow such as conditional expressions
+dependent on data (read from memory) or, side effects of function calls.  As the
+compiler cannot easily handle such constructs in the polyhedral model, these
+statements, generally, are not integrated in a SCoP, causing a split of the
+region containing such difficult statements into two SCoPs.
 
 To extend the applicability of polyhedral compilation, \cite{scopExtend}
 presents techniques to represent general conditions, enlarging the limits of
