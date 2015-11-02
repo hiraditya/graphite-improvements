@@ -654,7 +654,8 @@ build\_scops and build\_scop\_depth.  On Tramp3d-v4 \cite{richi}, a large C++
 application, the old SCoP detection executed $1583831$ instructions, while the
 new SCoP detection only executed $98822$ instructions, a speedup of $16$ times.
 We also report the speedup in SCoP detection when compiling the $32$ files of
-Polybench in Figure-\ref{fig:polybench-speedup}, and all the $578$ files of GCC.
+Polybench in Figure-\ref{fig:polybench-speedup}, and all the $578$ files of GCC
+in Figure-\ref{fig:gcc-speedup}.
 
 \begin {figure}
   \begin{center}
@@ -662,6 +663,16 @@ Polybench in Figure-\ref{fig:polybench-speedup}, and all the $578$ files of GCC.
   \end{center}
   \caption{Speedup of improved SCoP detection on Polybench.}
   \label{fig:polybench-speedup}
+\end {figure}
+
+\begin {figure}
+  \begin{center}
+    \resizebox{.95\linewidth}{!}{\input{gcc/speedup}}
+  \end{center}
+  \caption{Speedup of improved SCoP detection on GCC.
+    \texttt{Note to the reviewers: we have not collected all the data yet: these
+      are only the first files in the code of GCC from 'a' to 'c'.}}
+  \label{fig:gcc-speedup}
 \end {figure}
 
 \section{Conclusion and Future Work}
