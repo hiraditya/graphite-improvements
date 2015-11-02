@@ -634,9 +634,9 @@ detection the largest scop only contained $8$ loops.
 
 \subsection{Compilation time evaluation}
 The current infrastructure to measure of compilation time in gcc isn't precise
-enough to benchmark portions of passes which are non-dominating on the overall
-compile time.  On a recent x86\_64 machine the overall compilation time spent in
-Graphite was a fraction of a second for each benchmark in Polybench.
+enough to benchmark portions of passes which are not dominating the overall
+compilation time.  On a recent x86\_64 machine the overall compilation time
+spent in Graphite was a fraction of a second for each benchmark in Polybench.
 
 We used Valgrind to get more precise data on the number of instructions executed
 by the SCoP detection algorithms.  The command used is:
@@ -654,12 +654,14 @@ build\_scops and build\_scop\_depth.  On Tramp3d-v4 \cite{richi}, a large C++
 application, the old SCoP detection executed $1583831$ instructions, while the
 new SCoP detection only executed $98822$ instructions, a speedup of $16$ times.
 We also report the speedup in SCoP detection when compiling the $32$ files of
-Polybench, and all the $578$ files of GCC.
+Polybench in Figure-\ref{fig:polybench-speedup}, and all the $578$ files of GCC.
 
 \begin {figure}
   \begin{center}
     \resizebox{.95\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
+  \caption{Speedup of improved SCoP detection on Polybench.}
+  \label{fig:polybench-speedup}
 \end {figure}
 
 \section{Conclusion and Future Work}
