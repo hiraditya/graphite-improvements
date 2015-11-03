@@ -54,7 +54,7 @@ level representation by an explicit complex control flow, that was implicit in
 the high level language.
 
 From a practical point of view, optimization passes in compilers like GCC and
-LLVM are implemented on this low level intermetdiate representation (IR), in
+LLVM are implemented on this low level intermediate representation (IR), in
 order to avoid duplicating analyses and optimizations for each supported
 language, and in order to abstract away from the specifics of each language: for
 instance, consider the semantics variability of loop statements in Fortran, C,
@@ -68,7 +68,7 @@ optimized by a polyhedral compiler.
 \subsection{What are the boundaries of a SCoP?}
 
 Regions of code that can be handled in the polyhedral model are usually called
-Static Control Parts \cite{Bondhugula}, abbreviated as SCoPs.  Usually, SCoPs
+Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as SCoPs.  Usually, SCoPs
 may only contain regular control flow void of exceptions or other constructs
 that may provoke changes in control flow such as conditional expressions
 dependent on data (read from memory) or, side effects of function calls.  As the
@@ -281,7 +281,7 @@ which cannot be further extended.  This concept is currently used in Polly
 
 Since the main focus in the polyhedral model is the transformation of loops, all
 code translated in the polyhedral model that is not part of a loop, or part of a
-sequence of loops, only constitues an overhead in compilation time.  Finding and
+sequence of loops, only constitutes an overhead in compilation time.  Finding and
 representing a maximal SCoP is not necessary as it is possible to analyze all
 the surrounding conditions and extract constraints on the parameters.
 
@@ -427,13 +427,13 @@ An SESE region is regarded as a valid SCoP when it satisfies the following
 conditions:
 \begin{enumerate}
 \item The entry basic block should have only one predecessor and the exit
-  basic block should have only one successsor (i.e., an SESE).
+  basic block should have only one successor (i.e., an SESE).
 \item The entry should dominate the exit.
 \item The exit should post-dominate the entry.
 \item All the loops in the SESE should have single exits.
 \item The scalar evolution of all memory accesses and conditional expressions
   should be affine.
-\item All the statements inside the region should be reprepresentable in the
+\item All the statements inside the region should be representable in the
   polyhedral model.  For example, labels, pure function calls, assignments and
   comparison operations on integer types are allowed.
 \item It should be possible to represent induction variables (of all the loops)
@@ -554,10 +554,10 @@ post-dominate the $entry.dest$.  Also, the bounding basic blocks viz., source
 basic block of the entry edge and the destination basic block of exit edge,
 should belong to the same loop depth.  It is possible to continue extending the
 region by finding edges satisfying both these conditions, although for now the
-algorithm choses to bail out.  We would like to extend this functionality in the
+algorithm chooses to bail out.  We would like to extend this functionality in the
 future.
 
-If all the previous contraints are satisfied, the algorithm returns a larger
+If all the previous constraints are satisfied, the algorithm returns a larger
 SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
 inform that the merge was unsuccessful.
 
@@ -568,7 +568,7 @@ is also linear in the number of loops.
 
 The previous implementation of SCoP detection in Graphite is linear in the
 number of CFG edges as it discovers regions by walking on the CFG.  In the
-implementation of Polly, the use of iterated dominanace frontiers to build the
+implementation of Polly, the use of iterated dominance frontiers to build the
 SESE regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
 This can be expensive when the function body is large, specially with aggressive
 inlining.
@@ -602,7 +602,7 @@ also provide the same metrics for Polly, and we intentionally do not provide
 conclusions based on these metrics because a fair comparison on these metrics is
 difficult: the pass ordering and level in the pass pipeline at which Graphite
 and Polly apply are very different, and so the shapes of the CFG and natural
-loops tree on which the scop detection applies are radically different.
+loops tree on which the SCoP detection applies are radically different.
 
 \begin{table}[h!]
   \begin{center}
@@ -624,15 +624,15 @@ loops tree on which the scop detection applies are radically different.
 \end{table}
 
 There were no regressions in Graphite while moving from the old to the new SCoP
-detection: $316 - 207 = 109$ loops with only one loop per SCoP.  The new scop
+detection: $316 - 207 = 109$ loops with only one loop per SCoP.  The new SCoP
 detection discards all SCoPs with less than $2$ loops.
 
 Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$ loops
-per SCoP, and now discovers a scop with $17$ loops whereas with the old SCoP
-detection the largest scop only contained $8$ loops.
+per SCoP, and now discovers a SCoP with $17$ loops whereas with the old SCoP
+detection the largest SCoP only contained $8$ loops.
 
 \subsection{Compilation time evaluation}
-The current infrastructure to measure of compilation time in gcc isn't precise
+The current infrastructure to measure of compilation time in GCC isn't precise
 enough to benchmark portions of passes which are not dominating the overall
 compilation time.  On a recent x86\_64 machine the overall compilation time
 spent in Graphite was a fraction of a second for each benchmark in Polybench.
