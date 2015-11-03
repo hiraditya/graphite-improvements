@@ -3,8 +3,8 @@
 collect () {
     > speedup.txt
     for i in $(cat new/report.txt | cut -d ':' -f 1); do
-        old=$(grep $i old/report.txt | cut -d ':' -f 2)
-        new=$(grep $i new/report.txt | cut -d ':' -f 2)
+        old=$(grep "^$i" old/report.txt | cut -d ':' -f 2)
+        new=$(grep "^$i" new/report.txt | cut -d ':' -f 2)
         speedup=$(echo "scale=4; ($old / $new)" | bc)
         echo $(echo $i | sed -e 's/callgrind.out.//g'), $speedup &>> speedup.txt
     done

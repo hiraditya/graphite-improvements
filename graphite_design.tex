@@ -97,10 +97,10 @@ are based on some form of representation of the control flow graph: the first
 implementation we did for Graphite \cite{graphite} was based on the control
 flow graph itself and the basic block dominators tree.  Then Polly improved on
 this SCoP detection \cite{polly} by working on an abstraction of the control flow graph, the
-single entry single exit (SESE) region tree, a representation that integrates
+single entry single exit (SESE) regions tree, a representation that integrates
 the dominators tree on the control flow graph \cite{sese}.
 
-In order to avoid constructing the region tree, and to help the SCoP detection
+In order to avoid constructing the SESE regions tree, and to help the SCoP detection
 algorithm to faster converge on the parts of code that matter to polyhedral
 compilation, we used an abstraction of the control flow graph, the natural loops
 tree \cite{dragonbook}, together with dominance information \cite{ramalingam}.
@@ -156,7 +156,7 @@ information about specific aspects of the program through program analysis:
 \item The single entry single exit (SESE) regions \cite{sese} are obtained from
   the CFG and the DOM and Post-DOM trees by identifying contiguous sequences of
   basic blocks dominated and post-dominated by unique basic blocks.  In LLVM the
-  computation of SESE region trees is based on iterated dominance frontier
+  computation of SESE regions tree is based on iterated dominance frontier
   \cite{ramalingam} that can be quadratic in some cases.  The SESE
   regions may contain sub regions that have the SESE property: this inclusion
   relation is represented as a tree.
@@ -260,7 +260,7 @@ loop would not be represented as a SCoP and the SCoP detection would split these
 two loops into two distinct SCoPs.  This limitation has been removed in GCC 6.0
 by the improvements to the SCoP detection described later in this paper.
 
-\subsection{Polly SCoP detection: based on SESE region tree}
+\subsection{Polly SCoP detection: based on SESE regions tree}
 \label{subsec:polly-SCoP}
 Polly's SCoP detection is based on an analysis of SESE regions.  The discovery
 of all the regions in a function may be expensive, specially when the number of
@@ -569,7 +569,7 @@ is also linear in the number of loops.
 The previous implementation of SCoP detection in Graphite is linear in the
 number of CFG edges as it discovers regions by walking on the CFG.  In the
 implementation of Polly, the use of iterated dominanace frontiers to build the
-region trees may lead to quadratic behavior in some cases \cite{ramalingam}.
+SESE regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
 This can be expensive when the function body is large, specially with aggressive
 inlining.
 
@@ -668,10 +668,7 @@ in Figure-\ref{fig:gcc-speedup}.
   \begin{center}
     \resizebox{.95\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
-  \caption{Speedup of improved SCoP detection on GCC.  \texttt{Note to the
-      reviewers: we have not collected all the data yet: these are only the
-      first files in the code of GCC from 'a' to 'c'.  We will add all the data
-      for the $578$ files in the final version of the paper.}}
+  \caption{Speedup of improved SCoP detection on GCC.}
   \label{fig:gcc-speedup}
 \end {figure}
 

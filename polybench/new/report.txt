@@ -21,7 +21,7 @@ callgrind.out.jacobi-2d-imper.i: 867
 callgrind.out.ludcmp.i: 1018
 callgrind.out.lu.i: 778
 callgrind.out.mvt.i: 748
-callgrind.out.polybench.i: new/callgrind.out.reg_detect.i: 963
+callgrind.out.reg_detect.i: 963
 callgrind.out.seidel-2d.i: 676
 callgrind.out.symm.i: 867
 callgrind.out.syr2k.i: 1058
