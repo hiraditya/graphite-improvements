@@ -595,12 +595,13 @@ on a large code-base.
 \subsection{SCoP metrics}
 To validate the impact of our changes to the Graphite framework by replacing the
 old SCoP detection algorithm with the new one, we evaluate the number of SCoPs
-and number of loops per SCoP discovered on the Polybench \cite{polybench}.  We
-also provide the same metrics for Polly, and we intentionally do not provide
-conclusions based on these metrics because a fair comparison on these metrics is
-difficult: the pass ordering and level in the pass pipeline at which Graphite
-and Polly apply are very different, and so the shapes of the CFG and natural
-loops tree on which the SCoP detection applies are radically different.
+and number of loops per SCoP discovered on the Polybench \cite{polybench} in
+Table-\ref{tab:scop-metrics}.  We also provide the same metrics for Polly, and
+we intentionally do not provide conclusions based on these metrics because a
+fair comparison on these metrics is difficult: the pass ordering and level in
+the pass pipeline at which Graphite and Polly apply are very different, and so
+the shapes of the CFG and natural loops tree on which the SCoP detection applies
+are radically different.
 
 \begin{table}[h!]
   \begin{center}
@@ -618,7 +619,7 @@ loops tree on which the SCoP detection applies are radically different.
     \end{tabular}
   \end{center}
   \caption{SCoP metrics.}
-  \label{tab:table1}
+  \label{tab:scop-metrics}
 \end{table}
 
 There were no regressions in Graphite while moving from the old to the new SCoP
@@ -641,21 +642,36 @@ by the SCoP detection algorithms.  The command used is:
 $ CFLAGS="-Ofast -fgraphite-identity"
 $ valgrind --dsymutil=yes --tool=callgrind \
     --dump-instr=yes cc1plus $CFLAGS $file
-$ callgrind_annotate --threshold=100 callgrind.out
+$ callgrind_annotate --threshold=100 \
+    --inclusive=yes callgrind.out
 \end{verbatim}
 
 The output of callgrind\_annotate lists all the functions in the execution of
 the program together with a count of the number of instructions executed by the
 CPU.  The top-level functions of the old and new SCoP detectors are respectively
-build\_scops and build\_scop\_depth.  On Tramp3d-v4 \cite{richi}, a large C++
-application, the old SCoP detection executed $1583831$ instructions, while the
-new SCoP detection only executed $98822$ instructions, a speedup of $16$.  We
-also report the speedup in SCoP detection when compiling the $32$ files of
-Polybench in Figure-\ref{fig:polybench-speedup}, and the $578$ files of the
-source code of GCC in Figure-\ref{fig:gcc-speedup}.  The overall number of
-instructions executed while compiling all the files of GCC in the old SCoP
-detection is $29201650$ instructions, and $1044304$ instructions with the new
-SCoP detection, a speedup of $28$.
+build\_scops and build\_scop\_depth.  Table-\ref{tab:overall-insns} presents the
+overall number of instructions executed in the new and old SCoP detection on
+several benchmarks: Tramp3d-v4 \cite{richi} is a large C++ application,
+Polybench, and all the source files of GCC 6.0.  We also report the speedup in
+SCoP detection when compiling the $32$ files of Polybench in
+Figure-\ref{fig:polybench-speedup}, and the $578$ files of the source code of
+GCC in Figure-\ref{fig:gcc-speedup}.
+
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+      \hline
+      Benchmark  & New        & Old        & Speedup \\
+      \hline
+      Polybench  & 475127633  & 333775317  & 0.70    \\
+      Tramp3d-v4 & 624729992  & 1755147630 & 2.81    \\
+      GCC        &            &            &         \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Overall number of instructions spent in SCoP detection.}
+  \label{tab:overall-insns}
+\end{table}
 
 \begin {figure}
   \begin{center}
