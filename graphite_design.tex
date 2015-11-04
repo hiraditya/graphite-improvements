@@ -1,4 +1,4 @@
-\documentclass{sigplanconf}
+\documentclass{sig-alternate}
 \usepackage{comment}
 \usepackage{amsmath}
 \usepackage{hyperref}
@@ -13,13 +13,21 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-\conferenceinfo{Impact'16}{January 18--20, 2016, Prague, Cz}
-\copyrightyear{2016}
-\doi{nnnnnnn.nnnnnnn}
-
 \title{SCoP Detection: A Fast Algorithm for Industrial Compilers}
-\authorinfo{Aditya Kumar, Sebastian Pop}
-\authorinfo{Samsung Austin R\&D Center}
+
+\conferenceinfo{Impact}{'16 January 18--20, 2016, Prague, Cz}
+\numberofauthors{2}
+
+\author{
+\alignauthor
+Aditya Kumar\\
+       \affaddr{Samsung Austin R\&D Center}\\
+       \email{aditya.k7@samsung.com}
+\alignauthor
+Sebastian Pop\\
+       \affaddr{Samsung Austin R\&D Center}\\
+       \email{s.pop@samsung.com}
+}
 
 \maketitle
 
@@ -630,7 +638,7 @@ Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$ loops
 per SCoP, and now discovers a SCoP with $17$ loops whereas with the old SCoP
 detection the largest SCoP only contained $8$ loops.
 
-\subsection{Compilation time evaluation}
+\subsection{Evaluation of compilation time overhead}
 The current infrastructure to measure the compilation time in GCC isn't precise
 enough to benchmark portions of passes which are not dominating the overall
 compilation time.  On a recent x86\_64 machine the overall compilation time
@@ -654,15 +662,15 @@ thus report the number of instructions of the top-level functions of the old and
 new SCoP detectors, respectively build\_scops and build\_scop\_depth.
 
 Table-\ref{tab:overall-insns} presents the overall number of instructions
-executed in the new and old SCoP detection on several benchmarks: Tramp3d-v4
-\cite{richi} is a large C++ application, Polybench, and all the source files of
-GCC 6.0.  On large applications, the speedup over the old algorithm for scop
-detection is very important: on Tramp3d-v4, the old SCoP detection accounted for
-$7\%$ of the compilation time, while the new SCoP detection now only takes
-$.33\%$.  On Polybench there is some slowdown corresponding to the detection of
-larger scops: every step in enlarging the scop may trigger extra computations
-for scevs.  The slowdowns only correspond to benchmarks with loops that can be
-optimized by a polyhedral compilation.
+executed in the new and old SCoP detection on several benchmarks: Polybench
+\cite{polybench}, a large C++ application Tramp3d-v4 \cite{richi}, and all the
+source files of GCC 6.0.  On large applications, the speedup over the old
+algorithm for SCoP detection is very important: on Tramp3d-v4, the old SCoP
+detection accounted for $7.0\%$ of the compilation time, while the new SCoP
+detection now only takes $0.3\%$.  On Polybench there is some slowdown
+corresponding to the detection of larger SCoPs: every step in enlarging the SCoP
+may trigger extra computations for scevs.  The slowdowns only correspond to
+benchmarks with loops that can be optimized by a polyhedral compilation.
 
 Figure-\ref{fig:polybench-speedup} reports the speedup in SCoP detection when
 compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} has the
@@ -684,7 +692,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
       \hline
     \end{tabular}}
   \end{center}
-  \caption{Overall number of instructions spent in SCoP detection.  Columns New
+  \caption{Overall number of instructions spent in SCoP detection: columns New
     and Old report the number of instructions executed by the old and new SCoP
     detectors of GCC; Speedup reports the speedup between the Old and New; Main
     reports the cumulative number of instructions executed by the main function
@@ -695,7 +703,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{.95\linewidth}{!}{\input{polybench/speedup}}
+    \resizebox{\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
   \caption{Speedup of improved SCoP detection on Polybench.}
   \label{fig:polybench-speedup}
@@ -703,7 +711,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{.95\linewidth}{!}{\input{gcc/speedup}}
+    \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
   \caption{Speedup of improved SCoP detection on GCC 6.0.}
   \label{fig:gcc-speedup}
