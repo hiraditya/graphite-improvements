@@ -2,7 +2,7 @@
 
 collect () {
     > speedup.txt
-    for i in $(cat new/report.txt | cut -d ':' -f 1); do
+    for i in $(grep -vre ': $' new/report.txt | cut -d ':' -f 1); do
         old=$(grep "^$i" old/report.txt | cut -d ':' -f 2)
         new=$(grep "^$i" new/report.txt | cut -d ':' -f 2)
         speedup=$(echo "scale=2; ($old / $new)" | bc)

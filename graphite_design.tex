@@ -648,28 +648,48 @@ $ callgrind_annotate --threshold=100 \
 
 The output of callgrind\_annotate lists all the functions in the execution of
 the program together with a count of the number of instructions executed by the
-CPU.  The top-level functions of the old and new SCoP detectors are respectively
-build\_scops and build\_scop\_depth.  Table-\ref{tab:overall-insns} presents the
-overall number of instructions executed in the new and old SCoP detection on
-several benchmarks: Tramp3d-v4 \cite{richi} is a large C++ application,
-Polybench, and all the source files of GCC 6.0.  We also report the speedup in
-SCoP detection when compiling the $32$ files of Polybench in
-Figure-\ref{fig:polybench-speedup}, and the $578$ files of the source code of
-GCC in Figure-\ref{fig:gcc-speedup}.
+CPU.  The option ``--inclusive=yes'' allows us to gather the total number of
+instructions executed in a function and all the functions called from it.  We
+thus report the number of instructions of the top-level functions of the old and
+new SCoP detectors, respectively build\_scops and build\_scop\_depth.
+
+Table-\ref{tab:overall-insns} presents the overall number of instructions
+executed in the new and old SCoP detection on several benchmarks: Tramp3d-v4
+\cite{richi} is a large C++ application, Polybench, and all the source files of
+GCC 6.0.  On large applications, the speedup over the old algorithm for scop
+detection is very important: on Tramp3d-v4, the old SCoP detection accounted for
+$7\%$ of the compilation time, while the new SCoP detection now only takes
+$.33\%$.  On Polybench there is some slowdown corresponding to the detection of
+larger scops: every step in enlarging the scop may trigger extra computations
+for scevs.  The slowdowns only correspond to benchmarks with loops that can be
+optimized by a polyhedral compilation.
+
+Figure-\ref{fig:polybench-speedup} reports the speedup in SCoP detection when
+compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} has the
+speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin{table}[h!]
   \begin{center}
-    \begin{tabular}{|c|c|c|c|}
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|c|c|}
       \hline
-      Benchmark  & New        & Old        & Speedup \\
+      Benchmark  & Old      & New        & Speedup & Main       & Old \% & New \%  \\
       \hline
-      Polybench  & 475127633  & 333775317  & 0.70    \\
-      Tramp3d-v4 & 624729992  & 1755147630 & 2.81    \\
-      GCC        &            &            &         \\
+      Polybench  & $3.3e^8$ & $4.8e^8$   & $0.7$   & $2.5e^{10}$ & $1.4$  & $1.9$   \\
+      Tramp3d-v4 & $1.8e^9$ & $6.2e^8$   & $2.8$   & $1.9e^{11}$ & $7.0$  & $0.3$   \\
+      GCC 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.2e^{12}$ & $0.24$ & $0.01$  \\
+% Polybench: old=333775317, new=475127633, main=
+% Tramp3d-v4: old=1755147630, new=624729992, main=
+% GCC: old=15072748886, new=667787862, main=6183888029882
       \hline
-    \end{tabular}
+    \end{tabular}}
   \end{center}
-  \caption{Overall number of instructions spent in SCoP detection.}
+  \caption{Overall number of instructions spent in SCoP detection.  Columns New
+    and Old report the number of instructions executed by the old and new SCoP
+    detectors of GCC; Speedup reports the speedup between the Old and New; Main
+    reports the cumulative number of instructions executed by the main function
+    of the GCC cc1plus compiler; Old \% and New \% report the overall
+    compilation time overhead of the old and new SCoP detection.}
   \label{tab:overall-insns}
 \end{table}
 
@@ -685,22 +705,22 @@ GCC in Figure-\ref{fig:gcc-speedup}.
   \begin{center}
     \resizebox{.95\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
-  \caption{Speedup of improved SCoP detection on GCC.}
+  \caption{Speedup of improved SCoP detection on GCC 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
-\newpage
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
 compilation time and that it detects larger SCoPs than the previous
 implementation in Graphite.  This stems from the fact that operating on a higher
 level data structure allows the algorithm to faster converge on interesting
-regions that can be represented in the polyhedral model.  These improvements in
-compilation time of generic programs ensure that enabling the polyhedral
-optimizations by default at common optimization levels will not slow down the
-compilation time for the majority of programs compiled by an industrial
-compiler: i.e., programs with no loops, or with sparse loops that should not be
-translated in the polyhedral model.
+regions that can be represented in the polyhedral model.
+
+These improvements in compilation time of generic programs ensure that enabling
+the polyhedral optimizations by default at common optimization levels will not
+slow down the compilation time for the majority of programs compiled by an
+industrial compiler: i.e., programs with no loops, or with sparse loops that
+should not be translated in the polyhedral model.
 
 Another way to improve the compilation time of an industrial polyhedral
 compiler, that is not discussed in this paper, is by using the profile
