@@ -685,16 +685,16 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
       \hline
       Polybench  & $3.3e^8$ & $4.8e^8$   & $0.7$   & $2.5e^{10}$ & $1.4$  & $1.9$   \\
       Tramp3d-v4 & $1.8e^9$ & $6.2e^8$   & $2.8$   & $1.9e^{11}$ & $7.0$  & $0.3$   \\
-      GCC 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.2e^{12}$ & $0.24$ & $0.01$  \\
+      GCC 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.1e^{12}$ & $0.24$ & $0.01$  \\
 % Polybench: old=333775317, new=475127633, main=
 % Tramp3d-v4: old=1755147630, new=624729992, main=
-% GCC: old=15072748886, new=667787862, main=6183888029882
+% GCC: old=15072748886, new=667787862, main=6101635653835
       \hline
     \end{tabular}}
   \end{center}
   \caption{Overall number of instructions spent in SCoP detection: columns New
     and Old report the number of instructions executed by the old and new SCoP
-    detectors of GCC; Speedup reports the speedup between the Old and New; Main
+    detectors of GCC; Speedup reports the speedup between Old and New; Main
     reports the cumulative number of instructions executed by the main function
     of the GCC cc1plus compiler; Old \% and New \% report the overall
     compilation time overhead of the old and new SCoP detection.}
@@ -713,7 +713,8 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
-  \caption{Speedup of improved SCoP detection on GCC 6.0.}
+  \caption{Overhead of SCoP detection on the overall compilation time when
+    compiling the code of GCC 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
