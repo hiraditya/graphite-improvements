@@ -38,10 +38,13 @@ polyhedral model.
 
 To enable polyhedral compilation in the default optimization levels of the GNU
 Compiler Collection (``GCC''), we improved the SCoP detection of Graphite in
-order to lower its cost in terms of compilation time.  The algorithm described
-in this paper has been implemented and committed to GCC 6.0 trunk in preparation
-of turning on by default the ISL schedule optimizer at ``-O3 -fprofile-use'' in
-the 6.x releases of GCC.
+order to lower its cost in terms of compilation time. Experimental results
+on Polybench show that we now detect larger SCoPs 6.09 loops/SCoP as compared
+to 2.59 loops/SCoP with the previous algorithm. We also discard programs,
+which cannot be represented in polyhedral model, at a much faster rate.
+The algorithm described in this paper has been implemented and committed
+to GCC 6.0 trunk in preparation of turning on by default the ISL schedule
+optimizer at ``-O3 -fprofile-use'' in the 6.x releases of GCC.
 \end{abstract}
 
 \section{Introduction}
@@ -106,7 +109,7 @@ graph: the single entry single exit (SESE) regions tree, a representation that
 integrates the dominators tree with the control flow graph \cite{sese}.
 
 In order to avoid constructing the SESE regions tree, and to help the SCoP
-detection algorithm to converge faster on the parts of code that matter to
+detection algorithm converge faster on the parts of code that matter to
 polyhedral compilation, we used an abstraction of the control flow graph -- the
 natural loops tree \cite{dragonbook} -- together with dominance information
 \cite{ramalingam}.  In terms of compilation time, both representations come at
@@ -270,7 +273,8 @@ by the improvements to the SCoP detection described later in this paper.
 
 \subsection{Polly SCoP detection: based on SESE regions tree}
 \label{subsec:polly-SCoP}
-Polly's SCoP detection is based on an analysis of SESE regions.  The discovery
+Polly's SCoP detection is based on an analysis of SESE regions \cite{polly}.
+The discovery
 of all the regions in a function may be expensive, specially when the number of
 basic blocks in its CFG is very large.  In the current LLVM implementation of
 SESE region discovery, the use of dominance frontiers may have quadratic
@@ -305,7 +309,7 @@ beneficial in terms of optimizations and overall compilation time.
 \begin{figure}
 \centering
 %rankdir=LR;
-\digraph[scale=0.5]{abc}{
+\digraph[scale=0.25]{abc}{
 BeforeSESE -> IfCondition
 IfCondition -> TrueRegion
 IfCondition -> LoopHeader
@@ -347,6 +351,7 @@ GCC.
 
 \begin{figure}
 \begin{verbatim}
+// Recurse on the loop->inner.
 build_scop_depth (s1, loop):
   s1 = build_scop_depth (s1, loop->inner)
   s2 = merge_sese (s1, get_sese (loop))
@@ -361,6 +366,7 @@ build_scop_depth (s1, loop):
     return build_scop_depth (invalid_sese, loop->next)
   return build_scop_breadth (s2, loop)
 
+// Recurse on loop->next.
 build_scop_breadth (s1, loop):
   sese_l s2 = build_scop_depth (invalid_sese, loop->next)
   if (s2 is an invalid scop)
@@ -382,9 +388,11 @@ build_scop_breadth (s1, loop):
 \label{fig:induction}
 \end{figure}
 
-The traversal of the natural loops tree starts at a loop-nest at depth one.  The
-code inside the loop and all its nested loops are analyzed recursively for
+The traversal of the natural loops tree starts at a loop-nest at depth one
+(the outermost loops, see Section-\ref{subsec:loop-tree}).
+The code inside the loop and all its nested loops are analyzed recursively for
 validity, as described in Section-\ref{subsec:validity} and
+function \texttt{build\_scop\_depth} in
 Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
 the loop-nest becomes a valid SCoP and it is saved in a set of
 already found SCoPs. While adding a new SCoP to the set of detected SCoPs, we
@@ -395,7 +403,8 @@ existing SCoP in the set. This way, the set of SCoPs maintained in the set are
 mutually exclusive w.r.t. the regions they span i.e., no SCoP intersect with
 another in the set of detected SCoPs.
 
-After a valid loop is found, the algorithm analyzes the next loop, a loop at
+After a valid loop is found, the algorithm analyzes the next loop
+(see \texttt{build\_scop\_breadth} in Figure-\ref{fig:induction}), a loop at
 same depth and immediate sibling of the loop just analyzed.  If an adjacent loop
 is found to be a valid SCoP, we try to merge both loop nests as described in
 Section-\ref{subsec:merge-sese} and Figure-\ref{fig:merge-sese}.  If a combined
@@ -617,14 +626,14 @@ are radically different.
   \begin{center}
     \begin{tabular}{|c|c|c|c|}
       \hline
-      Metric                   & New  & Old  & Polly  \\
+      Metric                   	& New  & Old  & Polly  \\
       \hline
-      Number of SCoPs          & 34   & 189  & 30     \\
-      Max loops/SCoP           & 17   & 8    & 11     \\
-      Min loops/SCoP           & 2    & 1    & 2      \\
-      Number of SCoPs with min & 7    & 109  & 3      \\
-      Number of loops in SCoPs & 207  & 316  & 155    \\
-      Loops/SCoP               & 6.09 & 2.59 & 5.17   \\
+      SCoPs          		& 34   & 189  & 30     \\
+      Max loops/SCoP           	& 17   & 8    & 11     \\
+      Min loops/SCoP           	& 2    & 1    & 2      \\
+      SCoPs with min loops/SCoP & 7    & 109  & 3      \\
+      Loops in SCoPs 		& 207  & 316  & 155    \\
+      Loops/SCoP               	& 6.09 & 2.59 & 5.17   \\
       \hline
     \end{tabular}
   \end{center}
@@ -633,18 +642,23 @@ are radically different.
 \end{table}
 
 There were no regressions in Graphite while moving from the old to the new SCoP
-detection: $316 - 207 = 109$ loops with only one loop per SCoP.  The new SCoP
+detection because the difference: $316 - 207 = 109$, corresponds
+to SCoPs with only one loop.  The new SCoP
 detection discards all SCoPs with less than $2$ loops.
 
-Removing limit-SCoPs discovers larger SCoPs, i.e., from $2.59$ to $6.09$ loops
-per SCoP, and now discovers a SCoP with $17$ loops whereas with the old SCoP
-detection the largest SCoP only contained $8$ loops.
+We also see that the new algorithm discovers larger SCoPs on an average,
+i.e., from $2.59$ to $6.09$ loops per SCoP. This is because, the new
+algorithm allows SESE without a surrounding loop to be a SCoP so that two
+adjacent outermost loops can be a SCoP, which was not possible with the old algorithm
+(Section-\ref{subsec:graphite-SCoP}). Now the largest SCoP discovered has $17$
+loops whereas, with the old SCoP detection the largest SCoP only contained $8$ loops.
 
 \subsection{Evaluation of compilation time overhead}
 The current infrastructure to measure the compilation time in GCC isn't precise
 enough to benchmark portions of passes which are not dominating the overall
-compilation time.  On a recent x86\_64 machine the overall compilation time
-spent in Graphite was a fraction of a second for each benchmark in Polybench.
+compilation time.  On a recent x86\_64 machine, the overall compilation time
+spent in Graphite was a fraction of a second for each benchmark
+in Polybench \cite{polybench}.
 
 We used Valgrind to get more precise data on the number of instructions executed
 by the SCoP detection algorithms.  The command used is:
@@ -705,7 +719,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{\linewidth}{!}{\input{polybench/speedup}}
+    \resizebox{0.8\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
   \caption{Speedup of improved SCoP detection on Polybench.}
   \label{fig:polybench-speedup}
@@ -713,14 +727,13 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{\linewidth}{!}{\input{gcc/speedup}}
+    \resizebox{0.8\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
   \caption{Overhead of the new and old SCoP detection on the overall compilation
     time when compiling the code of GCC 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
-\newpage
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
 compilation time and that it detects larger SCoPs than the previous
