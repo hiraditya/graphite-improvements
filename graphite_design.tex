@@ -33,17 +33,20 @@ Sebastian Pop\\
 
 \begin{abstract}
 SCoP detection is a search algorithm that a compiler for imperative programming
-languages is using to find loops that can be represented and optimized in the
+languages is using to find loops to be represented and optimized in the
 polyhedral model.
 
-We improved the SCoP detection in order to lower its cost in terms of compilation time.
-The algorithm described in this paper has been implemented and committed
-to GCC 6.0 trunk in preparation of turning on by default the ISL schedule
+We improved the current algorithms for SCoP detection by operating on the
+natural loops tree, a higher level representation of the CFG, in order to lower
+the overall compilation time.  The algorithm described in this paper has been
+implemented in GCC 6.0 in preparation of turning on by default the ISL schedule
 optimizer at ``-O3 -fprofile-use''.
 
-Experimental results on Polybench show that we now detect larger SCoPs 6.09 loops/SCoP
-as compared to 2.59 loops/SCoP with the previous algorithm. We also discard programs,
-which cannot be represented in polyhedral model, at a much faster rate.
+We present evidence that the new SCoP detection algorithm improves the overall
+compilation time: on a large C++ application the overall compilation time spent
+in SCoP detection was reduced from $7\%$ to $0.3\%$.  Experimental results also
+show that GCC detects larger SCoPs on Polybench $6.09$ loops per SCoP as
+compared to $2.59$ loops per SCoP with the previous algorithm.
 \end{abstract}
 
 \section{Introduction}
@@ -125,12 +128,11 @@ compilation.
     representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
     in Graphite, the SCoP detection as implemented in LLVM-Polly, and the new
-    SCoP detection that we implemented and integrated into GCC 6.0.
+    SCoP detection that we implemented and integrated into GCC.
   \item We provide an analysis of the shape of SCoPs detected by these three
     algorithms in terms of the number of SCoPs detected in benchmarks and the
     number of loops per SCoP.
-  \item Finally, we present experimental results on improvements to compilation
-    time.
+  \item We present results on compilation time improvements.
 \end{enumerate}
 
 \section{Comparative analysis of SCoP detection algorithms}
