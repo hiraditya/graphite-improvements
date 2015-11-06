@@ -36,98 +36,99 @@ SCoP detection is a search algorithm that a compiler for imperative programming
 languages is using to find loops that can be represented and optimized in the
 polyhedral model.
 
-To enable polyhedral compilation in the default optimization levels of the
-industrial compiler GNU Compiler Collection - GCC, we improved the SCoP
-detection of Graphite in order to lower its cost in terms of compilation time.
-The algorithm described in this paper has been implemented and committed to
-trunk GCC 6.0 in preparation of turning on by default the ISL schedule optimizer
-at ``-O3 -fprofile-use'' in the next 6.x releases of GCC.
+To enable polyhedral compilation in the default optimization levels of the GNU
+Compiler Collection (``GCC''), we improved the SCoP detection of Graphite in
+order to lower its cost in terms of compilation time.  The algorithm described
+in this paper has been implemented and committed to GCC 6.0 trunk in preparation
+of turning on by default the ISL schedule optimizer at ``-O3 -fprofile-use'' in
+the 6.x releases of GCC.
 \end{abstract}
 
 \section{Introduction}
 
 Loop optimizations are usually described for languages like Fortran where loops
-and arrays are well behaved syntactic constructs.  In contrast with Fortran, low
-level languages like C or C++ do not offer the similar ease in the analysis of
+and arrays are well-behaved syntactic constructs.  In contrast with Fortran,
+low-level languages like C or C++ do not offer similar ease in the analysis of
 loops, induction variables, memory references, and data dependences, which are
-essential to all high level loop transforms.  Compilers for low level languages
-like GCC and LLVM lower the statements and expressions into low level constructs
+essential to all high-level loop transforms.  Compilers for low-level languages
+like GCC and LLVM lower the statements and expressions into low-level constructs
 common to all imperative programming languages: loops are represented by their
 control flow, i.e., jumps between basic blocks, memory references are lowered
-into pointer accesses, and expressions are lowered into three address code.
-Thus, high level C++ expressions containing exceptions are represented on a low
-level representation by an explicit complex control flow, that was implicit in
-the high level language.
+into pointer accesses, and expressions are lowered into three-address code.
+Thus, high-level C++ expressions containing exceptions are preserved in a
+low-level representation by an explicit complex control flow that was implicit
+in the high-level language.
 
 From a practical point of view, optimization passes in compilers like GCC and
-LLVM are implemented on this low level intermediate representation (IR), in
-order to avoid duplicating analyses and optimizations for each supported
-language, and in order to abstract away from the specifics of each language: for
-instance, consider the semantics variability of loop statements in Fortran, C,
-C++, Java, and Ada languages, all currently compiled and optimized by the
-middle-end of GCC.  The price paid for the generality of the approach is extra
-compilation time spent in recognizing all the high level loop constructs from
-the low level representation.  This paper describes a fast algorithm to
-discover, from a low level representation, loops that can be handled and
-optimized by a polyhedral compiler.
+LLVM are implemented on this low-level intermediate representation (IR) in order
+to avoid duplicating analyses and optimizations for each supported language, and
+in order to abstract away from the specifics of each language: for instance,
+consider the semantics variability of loop statements in Fortran, C, C++, Java,
+and Ada languages, all currently compiled and optimized by the middle end of
+GCC.  The price paid for the generality of the approach is extra compilation
+time spent in recognizing all the high-level loop constructs from the low-level
+representation.  This paper describes a fast algorithm to discover, from a
+low-level representation, loops that can be handled and optimized by a
+polyhedral compiler.
 
 \subsection{What are the boundaries of a SCoP?}
 
 Regions of code that can be handled in the polyhedral model are usually called
-Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as SCoPs.  Usually, SCoPs
-may only contain regular control flow void of exceptions or other constructs
-that may provoke changes in control flow such as conditional expressions
-dependent on data (read from memory) or, side effects of function calls.  As the
-compiler cannot easily handle such constructs in the polyhedral model, these
-statements, generally, are not integrated in a SCoP, causing a split of the
+Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as SCoPs.  Usually,
+SCoPs may only contain regular control flow free of exceptions and other
+constructs that may provoke changes in control flow such as conditional
+expressions dependent on data (read from memory) or side effects of function
+calls.  As the compiler cannot easily handle such constructs in the polyhedral
+model these statements are not integrated in a SCoP, causing a split of the
 region containing such difficult statements into two SCoPs.
 
 To extend the applicability of polyhedral compilation, \cite{scopExtend}
 presents techniques to represent general conditions, enlarging the limits of
-SCoPs to full function body.  We will not consider these SCoP extension
+SCoPs to full function bodies.  We will not consider these SCoP extension
 techniques in the current paper, as we want a fast SCoP detection suitable to be
-turned on by default in usual optimization levels, like ``-O2'', ``-O3'', or
+turned on by default at usual optimization levels, like ``-O2'', ``-O3'', and
 ``-Ofast''.  For that, we need an algorithm that is able to quickly converge on
 the largest SCoPs that can profitably be transformed by a polyhedral compiler
-like ISL \cite{verdoolaege2010isl} within a reasonable amount of compilation time.
-Practically, on a large number of compiled programs, we want to use close to
-zero overhead for functions without loops, or non interesting loops for the
-polyhedral compilation, and less than ten percent of the overall compilation
-time when optimizing loops for hot paths as shown in the profile of the compiled
-program.
+like ISL \cite{verdoolaege2010isl} within a reasonable amount of compilation
+time.  Practically, on a large number of compiled programs, we want close to
+zero overhead for functions without loops, or no loops of interest to polyhedral
+compilation, and less than ten percent of the overall compilation time when
+optimizing loops for paths shown as hot in the profile of the compiled program.
 
 \subsection{High level overview of SCoP detection algorithms}
 
-Existing implementations of SCoP detection based on low level representations
+Existing implementations of SCoP detection based on low-level representations
 are based on some form of representation of the control flow graph: the first
-implementation we did for Graphite \cite{graphite} was based on the control
-flow graph itself and the basic block dominators tree.  Then Polly improved on
-this SCoP detection \cite{polly} by working on an abstraction of the control flow graph, the
-single entry single exit (SESE) regions tree, a representation that integrates
-the dominators tree on the control flow graph \cite{sese}.
+implementation we did for Graphite \cite{graphite} was based on the control flow
+graph itself and the basic-block dominators tree.  Then Polly improved on this
+SCoP detection \cite{polly} by working on an abstraction of the control-flow
+graph: the single entry single exit (SESE) regions tree, a representation that
+integrates the dominators tree with the control flow graph \cite{sese}.
 
-In order to avoid constructing the SESE regions tree, and to help the SCoP detection
-algorithm to faster converge on the parts of code that matter to polyhedral
-compilation, we used an abstraction of the control flow graph, the natural loops
-tree \cite{dragonbook}, together with dominance information \cite{ramalingam}.
-In terms of compilation time, both representations come at zero cost, as they
-are maintained intact and correct between GCC's middle-end optimization passes,
-lowering the compilation cost for the most numerous functions compiled by GCC:
-functions with no loops, or with non contiguous isolated loops that cannot be
-profitably transformed in a polyhedral compilation.
+In order to avoid constructing the SESE regions tree, and to help the SCoP
+detection algorithm to converge faster on the parts of code that matter to
+polyhedral compilation, we used an abstraction of the control flow graph -- the
+natural loops tree \cite{dragonbook} -- together with dominance information
+\cite{ramalingam}.  In terms of compilation time, both representations come at
+zero cost, as they are maintained intact and correct between GCC's middle-end
+optimization passes, lowering the compilation cost for the most numerous
+functions compiled by GCC: functions with no loops, or with non-contiguous
+isolated loops that cannot be profitably transformed in a polyhedral
+compilation.
 
 \subsection{Contributions of this paper}
 \begin{enumerate}
-  \item We present a new algorithm for SCoP detection, that improves over the
-    existing techniques of extracting SCoPs from a low level intermediate
+  \item We present a new algorithm for SCoP detection that improves over the
+    existing techniques of extracting SCoPs from a low-level intermediate
     representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
     in Graphite, the SCoP detection as implemented in LLVM-Polly, and the new
-    SCoP detection that we implemented and integrated in GCC 6.0.
+    SCoP detection that we implemented and integrated into GCC 6.0.
   \item We provide an analysis of the shape of SCoPs detected by these three
-    algorithms in terms of number of SCoPs detected in benchmarks, and number of
-    loops per SCoP.
-  \item Finally, we present experimental results on compile time improvements.
+    algorithms in terms of the number of SCoPs detected in benchmarks and the
+    number of loops per SCoP.
+  \item Finally, we present experimental results on improvements to compilation
+    time.
 \end{enumerate}
 
 \section{Comparative analysis of SCoP detection algorithms}
@@ -135,12 +136,12 @@ profitably transformed in a polyhedral compilation.
 We first describe the SCoP detection algorithms implemented originally in
 Graphite and then in Polly, and then we show how the new algorithm improves over
 these earlier implementations.  The common point of all these algorithms is that
-they work on a low level representation of the program.  Analysis passes are
+they work on a low-level representation of the program.  Analysis passes are
 building more synthetic representations as described in the next subsection.
 
-\subsection{Code analysis: from low level to higher level representations}
+\subsection{Code analysis: from low-level to higher-level representations}
 
-Starting from a low level representation of the program, a compiler extracts
+Starting from a low-level representation of the program, a compiler extracts
 information about specific aspects of the program through program analysis:
 
 \begin{itemize}
@@ -149,11 +150,11 @@ information about specific aspects of the program through program analysis:
   number of statements to be executed sequentially without branches, and the
   edges of the CFG correspond to the jumps between basic blocks.
 
-\item The basic block dominator (DOM) and post-dominator (Post-DOM) trees
-  \cite{dragonbook, ramalingam} represent the relation between basic blocks with respect to
-  the control flow properties of the program: a basic block A is said to
-  dominate another basic block B when all execution paths from the beginning of
-  the function have to pass through A before reaching B.  Similarly, the
+\item The basic-block dominator (DOM) and post-dominator (Post-DOM) trees
+  \cite{dragonbook, ramalingam} represent the relation between basic blocks with
+  respect to the control flow properties of the program: a basic block A is said
+  to dominate another basic block B when all execution paths from the beginning
+  of the function have to pass through A before reaching B.  Similarly, the
   post-dominator information is obtained by inverting the direction of all edges
   in the CFG and then asking the same question with respect to the block ending
   the function: A is said to post-dominate B when all paths from the end of the
@@ -225,36 +226,37 @@ information about specific aspects of the program through program analysis:
   the memory access patterns of pointers in loops.
 
 \item The delinearization analysis \cite{delinearization1, delinearization2}
-  reconstructs a high level representation of arrays under the form of Fortran
+  reconstructs a high-level representation of arrays under the form of Fortran
   subscripts.  The delinearization uses all the access functions of all the data
   references in a loop, a region, or a function, in order to make sure all
   memory accesses follow the exact same pattern, i.e., the same subscript
   dimensions are valid in all accesses.
 \end{itemize}
 
-As we have seen, gradually, these analyzes extract from low level constructs
-higher level representations: later analyzes are based on earlier lower level
+As we have seen, gradually, these analyzes extract from low-level constructs
+higher-level representations: later analyzes are based on earlier lower-level
 results, building up a castle out of basic bricks.  All this information
 synthesized by the compiler allows the representation of diverse imperative
 programming languages into a polyhedral form \cite{Girbal} containing a very
-high level information of loop iteration domains, memory accesses, and static
+high-level information of loop iteration domains, memory accesses, and static
 and dynamic schedules.
 
-To reduce compilation time, the SCoP detection algorithms start from the lowest
-level analysis results that are commonly available and try to quickly discard
-parts of code that either cannot be translated in the polyhedral model or that
-cannot be profitably transformed.  The compiler has to quickly evaluate whether
-a part of the code is amenable to translation in the polyhedral model before
-spending time in computing higher level costly information.  For that reason,
-information about the CFG structure, and the number of loops per function are
-the first checks in the SCoP detection algorithms, followed by a linear walk
-over all the statements of the region of code to ensure the absence of side
-effects in statements, and to gather more costly information about the number of
-iterations, the linearity of memory access functions and condition expressions.
+To reduce compilation time, the SCoP detection algorithms start from the
+lowest-level analysis results that are commonly available and try to quickly
+discard parts of code that either cannot be translated in the polyhedral model
+or that cannot be profitably transformed.  The compiler has to quickly evaluate
+whether a part of the code is amenable to translation in the polyhedral model
+before spending time in computing higher-level costly information.  For that
+reason, information about the CFG structure, and the number of loops per
+function are the first checks in the SCoP detection algorithms, followed by a
+linear walk over all the statements of the region of code to ensure the absence
+of side effects in statements, and to gather more costly information about the
+number of iterations, the linearity of memory access functions and condition
+expressions.
 
 \subsection{Former algorithm for SCoP detection in Graphite}
 \label{subsec:graphite-SCoP}
-The first Graphite SCoP detection algorithm was implemented on a very low level
+The first Graphite SCoP detection algorithm was implemented on a very low-level
 representation of CFG and DOM \cite{graphite}.  These representations were too
 restrictive for the scev analysis to be able to determine the loops to be
 considered as variant and the loops that have to be considered as invariant, in
@@ -713,8 +715,8 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
-  \caption{Overhead of SCoP detection on the overall compilation time when
-    compiling the code of GCC 6.0.}
+  \caption{Overhead of the new and old SCoP detection on the overall compilation
+    time when compiling the code of GCC 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
@@ -722,9 +724,9 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
 compilation time and that it detects larger SCoPs than the previous
-implementation in Graphite.  This stems from the fact that operating on a higher
-level data structure allows the algorithm to faster converge on interesting
-regions that can be represented in the polyhedral model.
+implementation in Graphite.  This stems from the fact that operating on a
+higher-level data structure allows the algorithm to faster converge on
+interesting regions that can be represented in the polyhedral model.
 
 These improvements in compilation time of generic programs ensure that enabling
 the polyhedral optimizations by default at common optimization levels will not
