@@ -36,15 +36,14 @@ SCoP detection is a search algorithm that a compiler for imperative programming
 languages is using to find loops that can be represented and optimized in the
 polyhedral model.
 
-To enable polyhedral compilation in the default optimization levels of the GNU
-Compiler Collection (``GCC''), we improved the SCoP detection of Graphite in
-order to lower its cost in terms of compilation time. Experimental results
-on Polybench show that we now detect larger SCoPs 6.09 loops/SCoP as compared
-to 2.59 loops/SCoP with the previous algorithm. We also discard programs,
-which cannot be represented in polyhedral model, at a much faster rate.
+We improved the SCoP detection in order to lower its cost in terms of compilation time.
 The algorithm described in this paper has been implemented and committed
 to GCC 6.0 trunk in preparation of turning on by default the ISL schedule
-optimizer at ``-O3 -fprofile-use'' in the 6.x releases of GCC.
+optimizer at ``-O3 -fprofile-use''.
+
+Experimental results on Polybench show that we now detect larger SCoPs 6.09 loops/SCoP
+as compared to 2.59 loops/SCoP with the previous algorithm. We also discard programs,
+which cannot be represented in polyhedral model, at a much faster rate.
 \end{abstract}
 
 \section{Introduction}
@@ -389,7 +388,7 @@ build_scop_breadth (s1, loop):
 \end{figure}
 
 The traversal of the natural loops tree starts at a loop-nest at depth one
-(the outermost loops, see Section-\ref{subsec:loop-tree}).
+(the loop at depth zero is the function body).
 The code inside the loop and all its nested loops are analyzed recursively for
 validity, as described in Section-\ref{subsec:validity} and
 function \texttt{build\_scop\_depth} in
@@ -719,7 +718,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{0.8\linewidth}{!}{\input{polybench/speedup}}
+    \resizebox{\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
   \caption{Speedup of improved SCoP detection on Polybench.}
   \label{fig:polybench-speedup}
@@ -727,7 +726,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 
 \begin {figure}
   \begin{center}
-    \resizebox{0.8\linewidth}{!}{\input{gcc/speedup}}
+    \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
   \caption{Overhead of the new and old SCoP detection on the overall compilation
     time when compiling the code of GCC 6.0.}
