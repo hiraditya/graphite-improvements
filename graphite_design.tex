@@ -256,7 +256,7 @@ of side effects in statements, and to gather more costly information about the
 number of iterations, the linearity of memory access functions and condition
 expressions.
 
-\subsection{Former algorithm for SCoP detection in Graphite}
+\subsection{Former SCoP detection in Graphite}
 \label{subsec:graphite-SCoP}
 The first Graphite SCoP detection algorithm was implemented on a very low-level
 representation of CFG and DOM \cite{graphite}.  These representations were too
@@ -270,7 +270,7 @@ loop would not be represented as a SCoP and the SCoP detection would split these
 two loops into two distinct SCoPs.  This limitation has been removed in GCC 6.0
 by the improvements to the SCoP detection described later in this paper.
 
-\subsection{Polly SCoP detection: based on SESE regions tree}
+\subsection{Polly SCoP detection on SESE regions}
 \label{subsec:polly-SCoP}
 Polly's SCoP detection is based on an analysis of SESE regions \cite{polly}.
 The discovery
@@ -283,7 +283,7 @@ frontiers with a simpler check based on the natural loops properties of depth
 levels and regions of the CFG corresponding to irreducible loops, see
 Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-SCoP-detection}.
 
-\subsection{Maximal SCoPs and why they might not be very useful}
+\subsection{Why maximal SCoPs are not very useful}
 \label{subsec:maximality}
 A maximal SCoP is the largest region satisfying all the properties of a SCoP and
 which cannot be further extended.  This concept is currently used in Polly
@@ -305,21 +305,6 @@ compilation without real benefit in terms of adding opportunities for loop
 optimizations.  Having a SCoP only containing the loop would prove more
 beneficial in terms of optimizations and overall compilation time.
 
-Determining the best size of a SCoP for polyhedral optimization
-may depend on many variables like, total computations inside SCoP,
-impact on compile time, effective optimizations for the enclosed loop nests etc.
-While total computations inside a SCoP and its impact on compile time can be
-estimated, finding the best optimization is a hard problem. For example,
-larger SCoPs introduce more constraints on the variables under analysis
-which allows the polyhedral optimzer to make more informed decisions at
-the cost of extra compile time. On the other hand, some optimizations on larger
-SCoPs e.g., tiling, fusion, etc., can hurt vectorization.
-
-The new algorithm does not consider all these tradeoffs. We need to device
-some cost model to detect better SCoPs, which should be tunable for
-the kind of optimization that is best suited for a region of code.
-
-
 \begin{figure}
 \centering
 %rankdir=LR;
@@ -337,7 +322,7 @@ EndIf -> AfterSESE
 \label{fig:maximality}
 \end{figure}
 
-\section{A new faster SCoP detection to select relevant loop nests}
+\section{A new faster SCoP detection}
 \label{sec:new-SCoP-detection}
 The new algorithm for SCoP detection works by induction on the structure of the
 natural loops tree as described in Section-\ref{subsec:induction} and listed in
@@ -748,6 +733,7 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
   \label{fig:gcc-speedup}
 \end {figure}
 
+
 \section{Conclusion and Future Work}
 We have shown that our new algorithm of SCoP detection is faster in terms of
 compilation time and that it detects larger SCoPs than the previous
@@ -760,6 +746,15 @@ the polyhedral optimizations by default at common optimization levels will not
 slow down the compilation time for the majority of programs compiled by an
 industrial compiler: i.e., programs with no loops, or with sparse loops that
 should not be translated in the polyhedral model.
+
+While the new algorithm will focus only on detecting SCoPs with relevant loops,
+it still tries to maximize the size of the SCoP.  This may lead to increased
+polyhedral compilation time: for instance, dependence analysis and scheduling
+are slower on large SCoPs.  There are several tradeoffs could be addressed in
+detecting SCoPs of the right size for the needs of optimizers.  We think that
+the SCoP detection should take a more active role in driving the polyhedral
+optimizations by analyzing the shape of the SCoPs and selecting appropriate
+polyhedral optimizations.
 
 Another way to improve the compilation time of an industrial polyhedral
 compiler, that is not discussed in this paper, is by using the profile
