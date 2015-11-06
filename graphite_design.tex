@@ -305,10 +305,25 @@ compilation without real benefit in terms of adding opportunities for loop
 optimizations.  Having a SCoP only containing the loop would prove more
 beneficial in terms of optimizations and overall compilation time.
 
+Determining the best size of a SCoP for polyhedral optimization
+may depend on many variables like, total computations inside SCoP,
+impact on compile time, effective optimizations for the enclosed loop nests etc.
+While total computations inside a SCoP and its impact on compile time can be
+estimated, finding the best optimization is a hard problem. For example,
+larger SCoPs introduce more constraints on the variables under analysis
+which allows the polyhedral optimzer to make more informed decisions at
+the cost of extra compile time. On the other hand, some optimizations on larger
+SCoPs e.g., tiling, fusion, etc., can hurt vectorization.
+
+The new algorithm does not consider all these tradeoffs. We need to device
+some cost model to detect better SCoPs, which should be tunable for
+the kind of optimization that is best suited for a region of code.
+
+
 \begin{figure}
 \centering
 %rankdir=LR;
-\digraph[scale=0.25]{abc}{
+\digraph[scale=0.5]{abc}{
 BeforeSESE -> IfCondition
 IfCondition -> TrueRegion
 IfCondition -> LoopHeader
