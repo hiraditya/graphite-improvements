@@ -105,7 +105,7 @@ for optimal data locality. So we deprecated all the flags except -fgraphite-iden
 We kept -fgraphite-identity for debugging purposes only.
 
 \section{Limiting the number of computations done in ISL}
-Newer releasese of ISL have a way to bail out when total number of computations reach a limit.
+Newer releases of ISL have a way to bail out when total number of computations reach a limit.
 This feature is very useful because this way we can limit the overhead in compile time. This also
 allows greater control over optimization when loops are not too important. We provided a flag so
 that users can tune it as required.
@@ -128,6 +128,22 @@ polyhedral representation (virtually). This algorithm is more involved but avoid
         \item Reads from outside of SCoPs
         \item Writes to outside of SCoP.
 \end{enumerate}
+
+\subsection{Build scattering polyhedrons from the program schedule}
+Static and dynamic schedule are mapped in odd/even dimensions respectively.
+The schedule can be improved by minimizing the number of dimensions as done in polly-llvm.
+
+\section{Translating ISL polyhedral representation to gimple IR in SSA}
+There are situations where it is not possible to map the resulting code back to the original.
+\subsection {Translating PHIs}
+\begin{enumerate}
+  \item Cond PHI nodes. Finding the right direction from where SSA names/constants are coming. Issues with dominating
+    preds.
+  \item Loop PHI nodes. Finding the right basic block to insert loop PHIs.
+  \item Loop closed-PHI nodes. Inserting closed-PHIs at all the merge points.
+\end{enumerate}
+Disambiguating SSA names while mapping back.
+
 
 
 \section{Measuring effectiveness of optimization}
