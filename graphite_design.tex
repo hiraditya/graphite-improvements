@@ -46,7 +46,7 @@ polyhedral model.
 We improved the current algorithms for SCoP detection by operating on the
 natural loops tree, a higher level representation of the CFG, in order to lower
 the overall compilation time.  The algorithm described in this paper has been
-implemented in GCC 6.0 in preparation of turning on by default the ISL schedule
+implemented in GCC 6.0 in preparation of turning on by default the isl schedule
 optimizer at ``-O3 -fprofile-use''.
 
 We present evidence that the new SCoP detection algorithm improves the overall
@@ -67,9 +67,6 @@ like GCC and LLVM lower the statements and expressions into low-level constructs
 common to all imperative programming languages: loops are represented by their
 control flow, i.e., jumps between basic blocks, memory references are lowered
 into pointer accesses, and expressions are lowered into three-address code.
-Thus, high-level C++ expressions containing exceptions are preserved in a
-low-level representation by an explicit complex control flow that was implicit
-in the high-level language.
 
 From a practical point of view, optimization passes in compilers like GCC and
 LLVM are implemented on this low-level intermediate representation (IR) in order
@@ -101,11 +98,12 @@ techniques in the current paper, as we want a fast SCoP detection suitable to be
 turned on by default at usual optimization levels, like ``-O2'', ``-O3'', and
 ``-Ofast''.  For that, we need an algorithm that is able to quickly converge on
 the largest SCoPs that can profitably be transformed by a polyhedral compiler
-like ISL \cite{verdoolaege2010isl} within a reasonable amount of compilation
+like isl \cite{verdoolaege2010isl} within a reasonable amount of compilation
 time.  Practically, on a large number of compiled programs, we want close to
-zero overhead for functions without loops, or no loops of interest to polyhedral
-compilation, and less than ten percent of the overall compilation time when
-optimizing loops for paths shown as hot in the profile of the compiled program.
+zero overhead for functions without loops and for functions without any
+interesting loops to polyhedral compilation, and less than ten percent of the
+overall compilation time when optimizing loops for paths shown as hot in the
+profile of the compiled program.
 
 \subsection{High level overview of SCoP detection algorithms}
 
@@ -114,12 +112,12 @@ are based on some form of representation of the control flow graph: the first
 implementation we did for Graphite \cite{graphite} was based on the control flow
 graph itself and the basic-block dominators tree.  Then Polly improved on this
 SCoP detection \cite{polly} by working on an abstraction of the control-flow
-graph: the single entry single exit (SESE) regions tree, a representation that
+graph: the Single Entry Single Exit (SESE) regions tree, a representation that
 integrates the dominators tree with the control flow graph \cite{sese}.
 
-In order to avoid constructing the SESE regions tree, and to help the SCoP
+In order to avoid constructing the regions tree, and to help the SCoP
 detection algorithm converge faster on the parts of code that matter to
-polyhedral compilation, we used an abstraction of the control flow graph -- the
+polyhedral compilation, we use an abstraction of the control flow graph -- the
 natural loops tree \cite{dragonbook} -- together with dominance information
 \cite{ramalingam}.  In terms of compilation time, both representations come at
 zero cost, as they are maintained intact and correct between GCC's middle-end
@@ -145,7 +143,7 @@ compilation.
 \section{Comparative analysis of SCoP detection algorithms}
 
 We first describe the SCoP detection algorithms implemented originally in
-Graphite and then in Polly, and then we show how the new algorithm improves over
+Graphite and in Polly, and then we show how the new algorithm improves over
 these earlier implementations.  The common point of all these algorithms is that
 they work on a low-level representation of the program.  Analysis passes are
 building more synthetic representations as described in the next subsection.
@@ -171,13 +169,13 @@ information about specific aspects of the program through program analysis:
   the function: A is said to post-dominate B when all paths from the end of the
   function have to pass through A to reach B in the edge-reversed CFG.
 
-\item The single entry single exit (SESE) regions \cite{sese} are obtained from
+\item The Single Entry Single Exit (SESE) regions \cite{sese} are obtained from
   the CFG and the DOM and Post-DOM trees by identifying contiguous sequences of
   basic blocks dominated and post-dominated by unique basic blocks.  In LLVM the
   computation of SESE regions tree is based on iterated dominance frontier
-  \cite{ramalingam} that can be quadratic in some cases.  The SESE
-  regions may contain sub regions that have the SESE property: this inclusion
-  relation is represented as a tree.
+  \cite{ramalingam} that can be quadratic in some cases.  The SESE regions may
+  contain sub regions that have the SESE property: this inclusion relation is
+  represented as a tree.
 
 \label{subsec:loop-tree}
 \item Natural loops \cite{dragonbook, ramalingam} are detected as strongly connected
@@ -196,16 +194,15 @@ information about specific aspects of the program through program analysis:
   variables are either the result of expressions, or the result of phi nodes
   placed at control flow junctions in basic blocks that are target of two or
   more control flow edges.  Assignments from phi nodes represent all the
-  possible assignments considering the control flow graph.
-
-\item An abstraction of the SSA is that of a declarative language
-  \cite{spop2007} in which there are no assignments or imperative language
-  constructs.  The abstraction only represents the computation of scalar
-  variables that are either the result of arithmetic expressions, or the result
-  of two kinds of phi nodes: loop phi nodes have two arguments, one is defined
-  outside the loop containing the phi node, and the other is defined inside the
-  loop.  Loop close phi nodes have only one argument that is defined in an inner
-  loop.
+  possible assignments considering the control flow graph. The abstraction of
+  SSA representation is that of a declarative language \cite{spop2007} in which
+  there are no assignments or imperative language constructs.  The abstraction
+  only represents the computation of scalar variables that are either the result
+  of arithmetic expressions, or the result of two kinds of phi nodes loop phi
+  nodes and loop close phi nodes. Loop phi nodes have two arguments, one is
+  defined outside the loop containing the phi node, and the other is defined
+  inside the loop.  Loop close phi nodes have only one argument that is defined
+  in an inner loop.
 
 \item The analysis of scalar evolutions (scev) \cite{scev} starts from the
   abstraction of the SSA representation described above by recognizing the
@@ -224,7 +221,7 @@ information about specific aspects of the program through program analysis:
   represents the number of times a loop is executed.  The number of iterations
   is computed as the scev of a close phi node, or last value, of a scev starting
   at zero and incremented by one at each iteration of the loop.  The number of
-  iterations can also be computed by ISL, as we provide the scevs of all the
+  iterations can also be computed by isl, as we provide the scevs of all the
   variables involved in each condition that we translate.
 
 \item Pointer analysis detects base and access functions for all memory
@@ -260,10 +257,8 @@ whether a part of the code is amenable to translation in the polyhedral model
 before spending time in computing higher-level costly information.  For that
 reason, information about the CFG structure, and the number of loops per
 function are the first checks in the SCoP detection algorithms, followed by a
-linear walk over all the statements of the region of code to ensure the absence
-of side effects in statements, and to gather more costly information about the
-number of iterations, the linearity of memory access functions and condition
-expressions.
+linear walk over all the statements of the region of code to gather more costly
+information.
 
 \subsection{Former SCoP detection in Graphite}
 \label{subsec:graphite-SCoP}
@@ -347,7 +342,7 @@ Section-\ref{subsec:merge-sese} and listed in Figure-\ref{fig:merge-sese}.
 Section-\ref{subsec:loop-tree} has a brief introduction to the notion and
 properties of natural loops, dominators, and post-dominators properties used in
 this section; we refer our readers to \cite{ramalingam} for an in-depth
-discussion.  The algorithm assumes following preconditions during the SCoP
+discussion.  The algorithm assumes the following preconditions during the SCoP
 detection:
 \begin{itemize}
 \item The natural loops tree represents a reducible CFG: all edges and basic
@@ -362,30 +357,30 @@ detection:
 \begin{figure}
 \begin{verbatim}
 // Recurse on the loop->inner.
-build_scop_depth (s1, loop):
-  s1 = build_scop_depth (s1, loop->inner)
-  s2 = merge_sese (s1, get_sese (loop))
+sese build_scop_depth (sese s1, loop l):
+  s1 = build_scop_depth (s1, l->inner)
+  s2 = merge_sese (s1, get_sese (l))
   if (s2 is an invalid scop)
     {
       // s1 might be a valid scop, so return it
       // and start analyzing from the adjacent loop.
-      build_scop_depth (invalid_sese, loop->next)
+      build_scop_depth (invalid_sese, l->next)
       return s1
     }
-  if (loop is an invalid scop in s2)
-    return build_scop_depth (invalid_sese, loop->next)
-  return build_scop_breadth (s2, loop)
+  if (l is an invalid scop in s2)
+    return build_scop_depth (invalid_sese, l->next)
+  return build_scop_breadth (s2, l)
 
 // Recurse on loop->next.
-build_scop_breadth (s1, loop):
-  sese_l s2 = build_scop_depth (invalid_sese, loop->next)
+sese build_scop_breadth (sese s1, loop l):
+  sese s2 = build_scop_depth (invalid_sese, l->next)
   if (s2 is an invalid scop)
     {
       if (s1 is a valid scop)
         add_scop (s1)
       return s1
     }
-  combined = merge_sese (s1, s2)
+  sese combined = merge_sese (s1, s2)
   if (combined is a valid scop)
     s1 = combined
   else
@@ -406,11 +401,11 @@ function \texttt{build\_scop\_depth} in
 Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
 the loop-nest becomes a valid SCoP and it is saved in a set of
 already found SCoPs. While adding a new SCoP to the set of detected SCoPs, we
-first remove any SCoP which are either a sub-SCoP (completely surrounded) or
+first remove any SCoP which either is a sub-SCoP (completely surrounded) or
 intersects (partially overlaps), with the new one. The way algorithm runs, from
 bottom up for each loop nest, any new SCoP to be added cannot be subsumed by an
-existing SCoP in the set. This way, the set of SCoPs maintained in the set are
-mutually exclusive w.r.t. the regions they span i.e., no SCoP intersect with
+existing SCoP in the set. This way, the SCoPs maintained in the set are
+mutually exclusive w.r.t. the regions they span i.e., no SCoP intersects with
 another in the set of detected SCoPs.
 
 After a valid loop is found, the algorithm analyzes the next loop
@@ -436,8 +431,8 @@ to be analyzed for validity reduces to a minimal set.  We start by analyzing
 those statements which are inside a loop, because validity of those statements
 is necessary for the validity of loop.  The statements outside the loop nest can
 be excluded from the SESE if they are not valid.  Since this algorithm starts
-from the loop header, it could exclude statements before the first, and after
-the last loop in an SESE.  Also, regions without loops may be excluded if they
+from the loop header, it excludes statements before the first, and after
+the last loop in an SESE.  Also, regions without loops are be excluded if they
 are not surrounded by loops.  SCoPs thus detected are not maximal, in contrast
 with the example and discussion in Section-\ref{subsec:maximality}.
 
@@ -463,9 +458,9 @@ conditions:
 \item All the statements inside the region should be representable in the
   polyhedral model.  For example, labels, pure function calls, assignments and
   comparison operations on integer types are allowed.
-\item It should be possible to represent induction variables (of all the loops)
-  as signed integers because ISL might generate negative values in the optimized
-  expressions which needs to be code-generated.
+\item The induction variables of all the loops should be of (or convertible to)
+  signed integer type because isl might generate negative values in the optimized
+  expressions which would have to be code-generated.
 %\item The number of iterations of the loops in SESE should be deterministic and
 % should not overflow.
 %\item The loop nests in SESE should have at least one data reference.
@@ -482,33 +477,33 @@ conditions:
 
 \begin{figure}
 \begin{verbatim}
-merge_sese (first, second):
-  ncd: the nearest common dominator
-  ncpd: the nearest common post-dominator
-  dom = ncd (first.entry, second.entry)
-  pdom = ncpd (first.exit, second.exit)
-  entry = get_nearest_dom_with_single_entry (dom)
+sese_t merge_sese (sese_t first, sese_t second):
+  // ncd: the nearest common dominator
+  // ncpd: the nearest common post-dominator
+  // sese: { edge, edge }, bb: basic block
+
+  bb dom = ncd (first.entry, second.entry)
+  bb pdom = ncpd (first.exit, second.exit)
+
+  edge entry = nearest_dom_with_single_entry (dom)
   if (!entry)
     return invalid_sese
-  exit = get_nearest_pdom_with_single_exit (pdom)
+  edge exit = nearest_pdom_with_single_exit (pdom)
   if (!exit)
     return invalid_sese;
 
-  // Entry and exit should be in the same loop.
-  // Otherwise, the region may contain edges
-  // entering or leaving the region, violating
-  // the Single Entry Single Exit property.
+  // entry and exit should be in the same loop.
+  // and hence in the same sese.
   if (loop_depth (entry->src->loop_father) !=
       loop_depth (exit->dest->loop_father))
     return invalid_sese;
 
-  // Entry and Exit should not be part of an
-  // irreducible loop.
+  // edge should belong to reducible loop.
   if (entry.flag == EDGE_IRREDUCIBLE_LOOP
       or exit.flag == EDGE_IRREDUCIBLE_LOOP)
     return invalid_sese
 
-  combined = new_sese (entry, exit)
+  sese_t combined = new_sese (entry, exit)
   if (entry does not dominate exit
       or exit does not post-dominate entry
       or combined is an invalid scop)
@@ -523,31 +518,31 @@ merge_sese (first, second):
 
 \begin{figure}
 \begin{verbatim}
-get_nearest_dom_with_single_entry (bb):
-  if (bb has 1 predecessor e)
+edge nearest_dom_with_single_entry (bb b):
+  if (b has 1 predecessor edge e)
     return e
-  if (bb has 2 predecessors e1 and e2)
+  if (b has 2 predecessor edges e1 and e2)
     { // Check for a back-edge
       if (e1.src dominates e2.src)
         return e1;
       if (e2.src dominates e1.src)
         return e2;
     }
-  bb = get_immediate_dominator (bb)
-  return get_nearest_dom_with_single_entry (bb)
+  b = get_immediate_dominator (b)
+  return nearest_dom_with_single_entry (b)
 
-get_nearest_pdom_with_single_exit (bb):
-  if (bb has 1 successor e)
+edge nearest_pdom_with_single_exit (bb b):
+  if (b has 1 successor edge e)
     return e
-  if (bb has 2 successors e1 and e2)
+  if (b has 2 successor edges e1 and e2)
     { // Check for a back-edge
       if (e1.dest post dominates e2.dest)
         return e1;
       if (e2.dest post dominates e1.dest)
         return e2;
     }
-  bb = get_immediate_post_dominator (bb)
-  return get_nearest_pdom_with_single_exit (bb)
+  b = get_immediate_post_dominator (b)
+  return nearest_pdom_with_single_exit (b)
 \end{verbatim}
 \caption{Iterative computation of a single entry dominator and a single exit
   post-dominator}
@@ -747,16 +742,16 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
 We have shown that our new algorithm of SCoP detection is faster in terms of
 compilation time and that it detects larger SCoPs than the previous
 implementation in Graphite.  This stems from the fact that operating on a
-higher-level data structure allows the algorithm to faster converge on
-interesting regions that can be represented in the polyhedral model.
+higher-level program representation allows the algorithm to converge faster on
+regions that cannot be represented in the polyhedral model.
 
-These improvements in compilation time of generic programs ensure that enabling
-the polyhedral optimizations by default at common optimization levels will not
-slow down the compilation time for the majority of programs compiled by an
-industrial compiler: i.e., programs with no loops, or with sparse loops that
-should not be translated in the polyhedral model.
+The improvements in compilation time assure that enabling the polyhedral
+optimizations by default at common optimization levels will not slow down the
+compilation time for the majority of programs compiled by an industrial
+compiler: i.e., programs with no loops, or with sparse loops that should not be
+translated into the polyhedral model.
 
-While the new algorithm will focus only on detecting SCoPs with relevant loops,
+While the new algorithm focuses only on detecting SCoPs with relevant loops,
 it still tries to maximize the size of the SCoP.  This may lead to increased
 polyhedral compilation time.  We think that the SCoP detection should take a
 more active role in driving the polyhedral optimizations by analyzing the shape
@@ -764,12 +759,12 @@ of the SCoPs and selecting appropriate polyhedral optimizations.
 
 Another way to improve the compilation time of an industrial polyhedral
 compiler, that is not discussed in this paper, is by using the profile
-information collected with ``-fprofile-generate'' and injected in the
-intermediate representation by ``-fprofile-use'': one could use the profile
-information to focus the SCoP detection algorithm only on the hot paths of the
-program.  Also, using profile information, we are currently investigating
-techniques to tune the amount of compilation time allocated to the ISL
-polyhedral optimizer.
+information collected during an earlier execution of the program and made
+available to the compiler during subsequent compilation: one could use the
+profile information to tune the SCoP detection algorithm to focus only on the
+hot paths of the program.  We are also investigating techniques to tune the
+amount of compilation time allocated to the polyhedral optimizer (isl
+\cite{verdoolaege2010isl} in case of gcc).
 
 \section{Acknowledgements}
 We would like to thank Samsung Austin R\&D Center for supporting our work on
