@@ -155,9 +155,10 @@ information about specific aspects of the program through program analysis:
 
 \begin{itemize}
 \item The control flow graph (CFG) \cite{dragonbook} is built on top of a goto
-  based intermediate representation: the nodes of the CFG represent the largest
-  number of statements to be executed sequentially without branches, and the
-  edges of the CFG correspond to the jumps between basic blocks.
+  based intermediate representation: each node of the CFG represents a basic
+  block i.e., the largest number of statements to be executed sequentially
+  without branches, and the edges of the CFG correspond to the jumps between
+  basic blocks.
 
 \item The basic-block dominator (DOM) and post-dominator (Post-DOM) trees
   \cite{dragonbook, ramalingam} represent the relation between basic blocks with
