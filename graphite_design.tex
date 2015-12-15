@@ -10,6 +10,11 @@
 \begin{document}
 
 \def \SCoP {SCoP}
+\def \GCC {GCC}
+\def \LLVM {LLVM}
+\def \SESE {SESE}
+\def \CFG {CFG}
+\def \scev {scev}
 
 \special{papersize=8.5in,11in}
 \setlength{\pdfpageheight}{\paperheight}
@@ -46,15 +51,15 @@ languages is using to find loops to be represented and optimized in the
 polyhedral model.
 
 We improved the current algorithms for \SCoP{} detection by operating on the
-natural loops tree, a higher level representation of the CFG, in order to lower
+natural loops tree, a higher level representation of the \CFG{,} in order to lower
 the overall compilation time.  The algorithm described in this paper has been
-implemented in GCC 6.0 as a requirement to enable by default the isl schedule
+implemented in \GCC{} 6.0 as a requirement to enable by default the isl schedule
 optimizer at ``-O3 -fprofile-use''.
 
 We present evidence that the new \SCoP{} detection algorithm improves the overall
 compilation time: on a large C++ application, the overall compilation time spent
 in \SCoP{} detection was reduced from $7\%$ to $0.3\%$.  Experimental results also
-show that GCC detects larger \SCoP{s} on Polybench: $6.09$ loops per \SCoP{} as
+show that \GCC{} detects larger \SCoP{s} on Polybench: $6.09$ loops per \SCoP{} as
 compared to $2.59$ loops per \SCoP{} with the previous algorithm.
 \end{abstract}
 
@@ -65,18 +70,18 @@ and arrays are well-behaved syntactic constructs.  In contrast with Fortran,
 low-level languages like C or C++ do not offer similar ease in the analysis of
 loops, induction variables, memory references, and data dependences, which are
 essential to all high-level loop transforms.  Compilers for low-level languages
-like GCC and LLVM lower the statements and expressions into low-level constructs
+like \GCC{} and \LLVM{} lower the statements and expressions into low-level constructs
 common to all imperative programming languages: loops are represented by their
 control flow, i.e., jumps between basic blocks, memory references are lowered
 into pointer accesses, and expressions are lowered into three-address code.
 
-From a practical point of view, optimization passes in compilers like GCC and
-LLVM are implemented on this low-level intermediate representation (IR) in order
+From a practical point of view, optimization passes in compilers like \GCC{} and
+\LLVM{} are implemented on this low-level intermediate representation (IR) in order
 to avoid duplicating analyses and optimizations for each supported language, and
 in order to abstract away from the specifics of each language: for instance,
 consider the semantics variability of loop statements in Fortran, C, C++, Java,
 and Ada languages, all currently compiled and optimized by the middle end of
-GCC.  The price paid for the generality of the approach is extra compilation
+\GCC{.}  The price paid for the generality of the approach is extra compilation
 time spent in recognizing all the high-level loop constructs from the low-level
 representation.  This paper describes a fast algorithm to discover, from a
 low-level representation, loops that can be handled and optimized by a
@@ -90,7 +95,7 @@ Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as \SCoP{s}.  Usually
 constructs that may provoke changes in control flow such as conditional
 expressions dependent on data (read from memory) or side effects of function
 calls.  As the compiler cannot easily handle such constructs in the polyhedral
-model these statements are not integrated in a \SCoP{}, causing a split of the
+model these statements are not integrated in a \SCoP{,} causing a split of the
 region containing such difficult statements into two \SCoP{s}.
 
 To extend the applicability of polyhedral compilation, \cite{scopExtend}
@@ -114,7 +119,7 @@ are based on some form of representation of the control flow graph: the first
 implementation we did for Graphite \cite{graphite} was based on the control flow
 graph itself and the basic-block dominators tree.  Then Polly improved on this
 \SCoP{} detection \cite{polly, grosser2012polly} by working on an abstraction of
-the control-flow graph: the Single Entry Single Exit (SESE) regions tree, a
+the control-flow graph: the Single Entry Single Exit (\SESE{}) regions tree, a
 representation that integrates the dominator tree with the control flow graph
 \cite{sese}.
 
@@ -123,9 +128,9 @@ detection algorithm converge faster on the parts of code that matter to
 polyhedral compilation, we use an abstraction of the control flow graph -- the
 natural loops tree \cite{dragonbook} -- together with dominance information
 \cite{ramalingam}.  In terms of compilation time, both representations come at
-zero cost, as they are maintained intact and correct between GCC's middle-end
+zero cost, as they are maintained intact and correct between \GCC{'}s middle-end
 optimization passes, lowering the compilation cost for the most numerous
-functions compiled by GCC: functions with no loops, or with non-contiguous
+functions compiled by \GCC{:} functions with no loops, or with non-contiguous
 isolated loops that cannot be profitably transformed in a polyhedral
 compilation.
 
@@ -135,8 +140,8 @@ compilation.
     existing techniques of extracting \SCoP{s} from a low-level intermediate
     representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
-    in Graphite, the \SCoP{} detection as implemented in LLVM-Polly, and the new
-    \SCoP{} detection that we implemented and integrated into GCC.
+    in Graphite, the \SCoP{} detection as implemented in \LLVM{-}Polly, and the new
+    \SCoP{} detection that we implemented and integrated into \GCC{.}
   \item We provide an analysis of the shape of \SCoP{s} detected by these three
     algorithms in terms of the number of \SCoP{s} detected in benchmarks and the
     number of loops per \SCoP{.}
@@ -157,10 +162,10 @@ Starting from a low-level representation of the program, a compiler extracts
 information about specific aspects of the program through program analysis:
 
 \begin{itemize}
-\item The control flow graph (CFG) \cite{dragonbook} is built on top of a goto
-  based intermediate representation: each node of the CFG represents a basic
+\item The control flow graph (\CFG{}) \cite{dragonbook} is built on top of a goto
+  based intermediate representation: each node of the \CFG{} represents a basic
   block i.e., the largest number of statements to be executed sequentially
-  without branches, and the edges of the CFG correspond to the jumps between
+  without branches, and the edges of the \CFG{} correspond to the jumps between
   basic blocks.
 
 \item The basic-block dominator (DOM) and post-dominator (Post-DOM) trees
@@ -169,28 +174,28 @@ information about specific aspects of the program through program analysis:
   to dominate another basic block B when all execution paths from the beginning
   of the function have to pass through A before reaching B.  Similarly, the
   post-dominator information is obtained by inverting the direction of all edges
-  in the CFG and then asking the same question with respect to the block ending
+  in the \CFG{} and then asking the same question with respect to the block ending
   the function: A is said to post-dominate B when all paths from the end of the
-  function have to pass through A to reach B in the edge-reversed CFG.
+  function have to pass through A to reach B in the edge-reversed \CFG{.}
 
-\item The Single Entry Single Exit (SESE) regions \cite{sese} are obtained from
-  the CFG and the DOM and Post-DOM trees by identifying contiguous sequences of
-  basic blocks dominated and post-dominated by unique basic blocks.  In LLVM the
-  computation of SESE regions tree is based on iterated dominance frontier
-  \cite{ramalingam} that can be quadratic in some cases.  The SESE regions may
-  contain sub regions that have the SESE property: this inclusion relation is
+\item The Single Entry Single Exit (\SESE{}) regions \cite{sese} are obtained from
+  the \CFG{} and the DOM and Post-DOM trees by identifying contiguous sequences of
+  basic blocks dominated and post-dominated by unique basic blocks.  In \LLVM{} the
+  computation of \SESE{} regions tree is based on iterated dominance frontier
+  \cite{ramalingam} that can be quadratic in some cases.  The \SESE{} regions may
+  contain sub regions that have the \SESE{} property: this inclusion relation is
   represented as a tree.
 
 \label{subsec:loop-tree}
 \item Natural loops \cite{dragonbook, ramalingam} are detected as strongly connected
-  components (SCC) \cite{tarjan} on the CFG, loop nesting and sequence are
+  components (SCC) \cite{tarjan} on the \CFG{,} loop nesting and sequence are
   represented under the form of a tree: loop nodes are linked with $inner$ loop
   and $next$ loop relations.  The function body is represented as a loop at the
   root of the loop tree, and its depth is zero.  The depth of inner loops is one
   more than their parent, and sibling loops linked through $next$ are at the
-  same depth.  When the CFG contains an SCC that is not reducible to a natural
+  same depth.  When the \CFG{} contains an SCC that is not reducible to a natural
   loop, for example two back-edges pointing back to a same basic block, all the
-  edges and nodes of the CFG involved in that SCC are marked with a flag
+  edges and nodes of the \CFG{} involved in that SCC are marked with a flag
   IRREDUCIBLE\_LOOP.
 
 \item Static Single Assignment (SSA) form \cite{cytron} inserts extra scalar
@@ -208,24 +213,24 @@ information about specific aspects of the program through program analysis:
   inside the loop.  Loop close phi nodes have only one argument that is defined
   in an inner loop.
 
-\item The analysis of scalar evolutions (scev) \cite{scev} starts from the
+\item The analysis of scalar evolutions (\scev{}) \cite{scev} starts from the
   abstraction of the SSA representation described above by recognizing the
   evolution function of scalar variables for loop phi nodes, loop close phi
   nodes, and derived scalar declarations.  Loop phi nodes are declared by an
   initial value and an expression containing a self reference, when the self
   reference appears in an addition expression together with a scalar value or an
-  invariant expression in the current loop, the scev represents a recursive
+  invariant expression in the current loop, the \scev{} represents a recursive
   function with linear or affine evolution.  Loop close phi nodes are declared
   as the last value computed by an expression that may variate in a loop, the
-  scev then represents a partial recursive function.  All other scalar
-  declarations can be expressed as scevs derived from declarations of other
+  \scev{} then represents a partial recursive function.  All other scalar
+  declarations can be expressed as \scev{s} derived from declarations of other
   recursive and partial recursive functions.
 
-\item The analysis of the number of iterations \cite{scev} provides a scev that
+\item The analysis of the number of iterations \cite{scev} provides a \scev{} that
   represents the number of times a loop is executed.  The number of iterations
-  is computed as the scev of a close phi node, or last value, of a scev starting
+  is computed as the \scev{} of a close phi node, or last value, of a \scev{} starting
   at zero and incremented by one at each iteration of the loop.  The number of
-  iterations can also be computed by isl, as we provide the scevs of all the
+  iterations can also be computed by isl, as we provide the \scev{s} of all the
   variables involved in each condition that we translate.
 
 \item Pointer analysis detects base and access functions for all memory
@@ -234,7 +239,7 @@ information about specific aspects of the program through program analysis:
 \item Alias analysis disambiguates the base pointers and identifies which
   pointers may access the same memory locations.
 
-\item Data reference analysis uses the results of the scev analysis to determine
+\item Data reference analysis uses the results of the \scev{} analysis to determine
   the memory access patterns of pointers in loops.
 
 \item The delinearization analysis \cite{delinearization1, delinearization2}
@@ -259,7 +264,7 @@ discard parts of code that either cannot be translated in the polyhedral model
 or that cannot be profitably transformed.  The compiler has to quickly evaluate
 whether a part of the code is amenable to translation in the polyhedral model
 before spending time in computing higher-level costly information.  For that
-reason, information about the CFG structure, and the number of loops per
+reason, information about the \CFG{} structure, and the number of loops per
 function are the first checks in the \SCoP{} detection algorithms, followed by a
 linear walk over all the statements of the region of code to gather more costly
 information.
@@ -267,28 +272,28 @@ information.
 \subsection{Former \SCoP{} detection in Graphite}
 \label{subsec:graphite-SCoP}
 The first Graphite \SCoP{} detection algorithm was implemented on a very low-level
-representation of CFG and DOM \cite{graphite}.  These representations were too
-restrictive for the scev analysis to be able to determine the loops to be
+representation of \CFG{} and DOM \cite{graphite}.  These representations were too
+restrictive for the \scev{} analysis to be able to determine the loops to be
 considered as variant and the loops that have to be considered as invariant, in
-which the scev analysis should not analyze and instantiate further scalar
+which the \scev{} analysis should not analyze and instantiate further scalar
 variables in order to consider them as parameters \cite{scev}.  This resulted in
 a very restrictive limitation of \SCoP{s} that had to have one full loop fully
 contained in the \SCoP{:} for instance a sequence of two loops with no surrounding
 loop would not be represented as a \SCoP{} and the \SCoP{} detection would split these
-two loops into two distinct \SCoP{s}.  This limitation has been removed in GCC 6.0
+two loops into two distinct \SCoP{s}.  This limitation has been removed in \GCC{} 6.0
 by the improvements to the \SCoP{} detection described later in this paper.
 
-\subsection{Polly \SCoP{} detection on SESE regions}
+\subsection{Polly \SCoP{} detection on \SESE{} regions}
 \label{subsec:polly-SCoP}
-Polly's \SCoP{} detection is based on an analysis of SESE regions \cite{polly}.
+Polly's \SCoP{} detection is based on an analysis of \SESE{} regions \cite{polly}.
 The discovery
 of all the regions in a function may be expensive, especially when the number of
-basic blocks in its CFG is very large.  In the current LLVM implementation of
-SESE region discovery, the use of dominance frontiers may have quadratic
+basic blocks in its \CFG{} is very large.  In the current \LLVM{} implementation of
+\SESE{} region discovery, the use of dominance frontiers may have quadratic
 behavior in some cases.  The algorithm described in this paper may help in
-reducing the cost of the SESE region analysis by replacing the use of dominance
+reducing the cost of the \SESE{} region analysis by replacing the use of dominance
 frontiers with a simpler check based on the natural loops properties of depth
-levels and regions of the CFG corresponding to irreducible loops, see
+levels and regions of the \CFG{} corresponding to irreducible loops, see
 Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-SCoP-detection}.
 
 \subsection{Why maximal \SCoP{s} are not very useful}
@@ -306,7 +311,7 @@ the surrounding conditions and extract constraints on the parameters.
 
 To illustrate our point, consider the maximal \SCoP{} in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
-satisfies the properties of a \SCoP{}, and contains a single loop composed of a
+satisfies the properties of a \SCoP{,} and contains a single loop composed of a
 LoopHeader and a LoopLatch.  All the other blocks of a maximal \SCoP{}
 IfCondition, TrueRegion, and EndIf add extra overhead to the polyhedral
 compilation without real benefit in terms of adding opportunities for loop
@@ -348,7 +353,7 @@ properties used in this section; we refer our readers to \cite{ramalingam} for
 an in-depth discussion.  The algorithm assumes the following preconditions
 during the \SCoP{} detection:
 \begin{itemize}
-\item The natural loops tree represents a reducible CFG: all edges and basic
+\item The natural loops tree represents a reducible \CFG{:} all edges and basic
   blocks in an irreducible SCC are tagged with an IRREDUCIBLE\_LOOP flag.
 \item Dominance information is available.
 \item Mechanism to compute the evolution of scalars in a region exists.
@@ -416,39 +421,39 @@ After a valid loop is found, the algorithm analyzes the next loop
 same depth and immediate sibling of the loop just analyzed.  If an adjacent loop
 is found to be a valid \SCoP{,} we try to merge both loop nests as described in
 Section-\ref{subsec:merge-sese} and Figure-\ref{fig:merge-sese}.  If a combined
-SESE has been found, which subsumes both \SCoP{s}, it is analyzed for
-validity. Even if we have already analyzed the statements in the combined SESE
+\SESE{} has been found, which subsumes both \SCoP{s}, it is analyzed for
+validity. Even if we have already analyzed the statements in the combined \SESE{}
 in their respective sub-\SCoP{s}, we need to re-analyze them because the scalar
 evolution of the data references change with the region of the program under
-analysis. If the combined SESE represents a valid \SCoP{,} then it is saved, after
+analysis. If the combined \SESE{} represents a valid \SCoP{,} then it is saved, after
 removing any intersecting or sub-\SCoP{s}, and further analysis is continued to
-extend the \SCoP{} again.  If no such SESE could be found, the algorithm keeps them
+extend the \SCoP{} again.  If no such \SESE{} could be found, the algorithm keeps them
 as two separate \SCoP{s}, and continues by trying to extend the second \SCoP{.}
 
 With the new approach it is faster to discard many invalid loop-nests early. The
 algorithm analyzes statements which matter most by starting the \SCoP{} detection
-from a loop-tree node (CFG node which begins from a loop header). This allows
+from a loop-tree node (\CFG{} node which begins from a loop header). This allows
 discarding unrepresentable loops early in the \SCoP{}-detection process, thereby
-discarding SESE region surrounding them.  This way, the number of instructions
+discarding \SESE{} region surrounding them.  This way, the number of instructions
 to be analyzed for validity reduces to a minimal set.  We start by analyzing
 those statements which are inside a loop, because validity of those statements
 is necessary for the validity of loop.  The statements outside the loop nest can
-be excluded from the SESE if they are not valid.  Since this algorithm starts
+be excluded from the \SESE{} if they are not valid.  Since this algorithm starts
 from the loop header, it excludes statements before the first, and after
-the last loop in an SESE.  Also, regions without loops are be excluded if they
+the last loop in an \SESE{.}  Also, regions without loops are be excluded if they
 are not surrounded by loops.  \SCoP{s} thus detected are not maximal, in contrast
 with the example and discussion in Section-\ref{subsec:maximality}.
 
-\subsection{When is an SESE region a valid \SCoP{?}}
+\subsection{When is an \SESE{} region a valid \SCoP{?}}
 \label{subsec:validity}
-An SESE region is regarded as a valid \SCoP{} when it satisfies the following
+An \SESE{} region is regarded as a valid \SCoP{} when it satisfies the following
 conditions:
 \begin{enumerate}
 \item The entry basic block should have only one predecessor and the exit
-  basic block should have only one successor (i.e., an SESE).
+  basic block should have only one successor (i.e., an \SESE{}).
 \item The entry should dominate the exit.
 \item The exit should post-dominate the entry.
-\item All the loops in the SESE should have single exits.
+\item All the loops in the \SESE{} should have single exits.
 \item The scalar evolution of all memory accesses and conditional expressions
   should be affine.
 \item All the statements inside the region should be representable in the
@@ -497,7 +502,7 @@ sese_t merge_sese (sese_t first, sese_t second):
     return invalid_sese
   return combined
 \end{verbatim}
-\caption{Merging two SESE regions}
+\caption{Merging two \SESE{} regions}
 \label{fig:merge-sese}
 \end{figure}
 
@@ -534,11 +539,11 @@ edge nearest_pdom_with_single_exit (bb b):
 \label{fig:iterate-single-entry}
 \end{figure}
 
-We compose a larger SESE by merging two smaller \SCoP{s}. In order to merge two
-SESEs, as described in Figure-\ref{fig:merge-sese}, to form a new SESE, we
+We compose a larger \SESE{} by merging two smaller \SCoP{s}. In order to merge two
+\SESE{s}, as described in Figure-\ref{fig:merge-sese}, to form a new \SESE{,} we
 search the nearest common dominator $dom$ and the nearest common post-dominator
 $pdom$ to form a new region.  After that we find the nearest dominator of $dom$
-with single entry because we want to build an SESE.  We iterate on the dominator
+with single entry because we want to build an \SESE{.}  We iterate on the dominator
 tree until we find such basic block, as described in
 Figure-\ref{fig:iterate-single-entry}.  If any of the dominators has two
 predecessors but one of them is a back edge, then that basic block also
@@ -560,7 +565,7 @@ algorithm chooses to bail out.  We would like to extend this functionality in th
 future.
 
 If all the previous constraints are satisfied, the algorithm returns a larger
-SESE which subsumes both the \SCoP{s}, otherwise it returns an invalid SESE to
+\SESE{} which subsumes both the \SCoP{s}, otherwise it returns an invalid \SESE{} to
 inform that the merge was unsuccessful.
 
 \subsection{Analysis of the \SCoP{} detection algorithms}
@@ -569,17 +574,17 @@ natural loops tree.  The number of calls to the dominators and post-dominators
 is also linear in the number of loops.
 
 The previous implementation of \SCoP{} detection in Graphite is linear in the
-number of CFG edges as it discovers regions by walking on the CFG.  In the
+number of \CFG{} edges as it discovers regions by walking on the \CFG{.}  In the
 implementation of Polly, the use of iterated dominance frontiers to build the
-SESE regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
+\SESE{} regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
 This can be expensive when the function body is large, specially with aggressive
 inlining.
 
 The complexity of the validity function is still a point that could be improved
-in all the \SCoP{} detection algorithms: every statement of the SESE has to be
+in all the \SCoP{} detection algorithms: every statement of the \SESE{} has to be
 validated.  When a \SCoP{} is extended upwards, either including in the larger
-region sequential loops, or going from an inner loop to an outer loop, the scev
-instantiation point changes, and thus the scevs of inner or lower regions become
+region sequential loops, or going from an inner loop to an outer loop, the \scev{}
+instantiation point changes, and thus the \scev{s} of inner or lower regions become
 invalid under the new instantiation point, and have to be analyzed again.
 
 The new \SCoP{} detection algorithm helps analyze fewer statements in case of an
@@ -601,7 +606,7 @@ rather than the validity of each statement.
     \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
   \caption{Overhead of the new and old \SCoP{} detection on the overall compilation
-    time when compiling the code of GCC 6.0.}
+    time when compiling the code of \GCC{} 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
@@ -621,7 +626,7 @@ Table-\ref{tab:scop-metrics}.  We also provide the same metrics for Polly, and
 we intentionally do not provide conclusions based on these metrics because a
 fair comparison on these metrics is difficult: the pass ordering and level in
 the pass pipeline at which Graphite and Polly apply are very different, and so
-the shapes of the CFG and natural loops tree on which the \SCoP{} detection applies
+the shapes of the \CFG{} and natural loops tree on which the \SCoP{} detection applies
 are radically different.
 
 \begin{table}[h!]
@@ -650,13 +655,13 @@ detection discards all \SCoP{s} with less than $2$ loops.
 
 We also see that the new algorithm discovers larger \SCoP{s} on an average,
 i.e., from $2.59$ to $6.09$ loops per \SCoP{.} This is because, the new
-algorithm allows SESE without a surrounding loop to be a \SCoP{} so that two
+algorithm allows \SESE{} without a surrounding loop to be a \SCoP{} so that two
 adjacent outermost loops can be a \SCoP{,} which was not possible with the old algorithm
 (Section-\ref{subsec:graphite-SCoP}). Now the largest \SCoP{} discovered has $17$
 loops whereas, with the old \SCoP{} detection the largest \SCoP{} only contained $8$ loops.
 
 \subsection{Evaluation of compilation time overhead}
-The current infrastructure to measure the compilation time in GCC isn't precise
+The current infrastructure to measure the compilation time in \GCC{} isn't precise
 enough to benchmark portions of passes which are not dominating the overall
 compilation time.  On a recent x86\_64 machine, the overall compilation time
 spent in Graphite was a fraction of a second for each benchmark
@@ -682,21 +687,21 @@ new \SCoP{} detectors, respectively build\_scops and build\_scop\_depth.
 Table-\ref{tab:overall-insns} presents the overall number of instructions
 executed in the new and old \SCoP{} detection on several benchmarks: Polybench
 \cite{polybench}, a large C++ application Tramp3d-v4 \cite{richi}, and all the
-source files of GCC 6.0.  Columns New and Old report the number of instructions
-executed by the old and new \SCoP{} detectors of GCC; Speedup reports the speedup
+source files of \GCC{} 6.0.  Columns New and Old report the number of instructions
+executed by the old and new \SCoP{} detectors of \GCC{;} Speedup reports the speedup
 between Old and New; Main reports the cumulative number of instructions executed
-by the main function of the GCC cc1plus compiler; Old \% and New \% report the
+by the main function of the \GCC{} cc1plus compiler; Old \% and New \% report the
 overall compilation time overhead of the old and new \SCoP{} detection.  On large
 applications, the speedup over the old algorithm for \SCoP{} detection is very
 important: on Tramp3d-v4, the old \SCoP{} detection accounted for $7.0\%$, and
 $0.3\%$ in the new \SCoP{} detection.  On Polybench there is some slowdown
 corresponding to the detection of larger \SCoP{s}: every step in enlarging the \SCoP{}
-may trigger extra computations for scevs.  The slowdowns only correspond to
+may trigger extra computations for \scev{s}.  The slowdowns only correspond to
 benchmarks with loops that can be optimized by a polyhedral compilation.
 
 Figure-\ref{fig:polybench-speedup} reports the speedup in \SCoP{} detection when
 compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} has the
-speedup in \SCoP{} detection for the $578$ files of the source code of GCC 6.0.
+speedup in \SCoP{} detection for the $578$ files of the source code of \GCC{} 6.0.
 
 \begin{table}[h!]
   \begin{center}
@@ -707,10 +712,10 @@ speedup in \SCoP{} detection for the $578$ files of the source code of GCC 6.0.
       \hline
       Polybench  & $3.3e^8$ & $4.8e^8$   & $0.7$   & $2.5e^{10}$ & $1.4$  & $1.9$   \\
       Tramp3d-v4 & $1.8e^9$ & $6.2e^8$   & $2.8$   & $1.9e^{11}$ & $7.0$  & $0.3$   \\
-      GCC 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.1e^{12}$ & $0.24$ & $0.01$  \\
+      \GCC{} 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.1e^{12}$ & $0.24$ & $0.01$  \\
 % Polybench: old=333775317, new=475127633, main=
 % Tramp3d-v4: old=1755147630, new=624729992, main=
-% GCC: old=15072748886, new=667787862, main=6101635653835
+% \GCC{}: old=15072748886, new=667787862, main=6101635653835
       \hline
     \end{tabular}}
   \end{center}
