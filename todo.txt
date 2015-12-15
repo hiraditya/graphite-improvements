@@ -229,17 +229,6 @@ optimization be enabled by default in GCC and at which levels?
 Similarly, the conclusion leaves profile-guided optimization for the future work
 while the abstract makes allusion to “-fprofile-use” flag enabling it.
 
--- Typos --
-
-"may or do not" sounds misleading
-"specially when" -> especially when
-"linked with inner loop, and next loop" -> no comma
-"SSA form [4]," -> no comma
-"properties of natural loops, dominators, post-dominators properties" -> ...
-"Mechanism to compute the evolution of scalars in a region" -> add "exists"?
-"both the SCoPs" -> both SCoPs
-ISL seems to be written as "isl", all small letters, by its author.
-
 
 ----------------------- REVIEW 4 ---------------------
 
