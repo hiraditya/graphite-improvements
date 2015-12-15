@@ -46,13 +46,13 @@ polyhedral model.
 We improved the current algorithms for SCoP detection by operating on the
 natural loops tree, a higher level representation of the CFG, in order to lower
 the overall compilation time.  The algorithm described in this paper has been
-implemented in GCC 6.0 in preparation of turning on by default the isl schedule
+implemented in GCC 6.0 as a requirement to enable by default the isl schedule
 optimizer at ``-O3 -fprofile-use''.
 
 We present evidence that the new SCoP detection algorithm improves the overall
-compilation time: on a large C++ application the overall compilation time spent
+compilation time: on a large C++ application, the overall compilation time spent
 in SCoP detection was reduced from $7\%$ to $0.3\%$.  Experimental results also
-show that GCC detects larger SCoPs on Polybench $6.09$ loops per SCoP as
+show that GCC detects larger SCoPs on Polybench: $6.09$ loops per SCoP as
 compared to $2.59$ loops per SCoP with the previous algorithm.
 \end{abstract}
 
@@ -111,9 +111,10 @@ Existing implementations of SCoP detection based on low-level representations
 are based on some form of representation of the control flow graph: the first
 implementation we did for Graphite \cite{graphite} was based on the control flow
 graph itself and the basic-block dominators tree.  Then Polly improved on this
-SCoP detection \cite{polly} by working on an abstraction of the control-flow
-graph: the Single Entry Single Exit (SESE) regions tree, a representation that
-integrates the dominators tree with the control flow graph \cite{sese}.
+SCoP detection \cite{polly, grosser2012polly} by working on an abstraction of
+the control-flow graph: the Single Entry Single Exit (SESE) regions tree, a
+representation that integrates the dominator tree with the control flow graph
+\cite{sese}.
 
 In order to avoid constructing the regions tree, and to help the SCoP
 detection algorithm converge faster on the parts of code that matter to
@@ -128,7 +129,7 @@ compilation.
 
 \subsection{Contributions of this paper}
 \begin{enumerate}
-  \item We present a new algorithm for SCoP detection that improves over the
+  \item We present a new algorithm for SCoP detection that improves the
     existing techniques of extracting SCoPs from a low-level intermediate
     representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
@@ -161,7 +162,7 @@ information about specific aspects of the program through program analysis:
   basic blocks.
 
 \item The basic-block dominator (DOM) and post-dominator (Post-DOM) trees
-  \cite{dragonbook, ramalingam} represent the relation between basic blocks with
+  \cite{dragonbook, ramalingam} represent the relations between basic blocks with
   respect to the control flow properties of the program: a basic block A is said
   to dominate another basic block B when all execution paths from the beginning
   of the function have to pass through A before reaching B.  Similarly, the

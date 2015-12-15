@@ -215,37 +215,6 @@ the approach of Sreedhar-Gao-Lee-TOPLAS-96 who use an additional annotation on
 their dominance trees (which they call as “DJ graphs”).  A comparison of the
 paper's approach with the above work would be appropriate.
 
-Given the concept and the implementation, the paper is appropriate for IMPACT
-conference in an implementation track. However, the contributions
-(theoretical/empirical study) could have been more intense: hence the low rating
-for acceptance.
-
-Remarks for the authors:
-
-— Instead of referring to the IMPACT-2011 paper by Grosser et al (ref#8), the
-Polly paper should refer to the following PPL paper.  Tobias Grosser, Armin
-Größlinger, Christian Lengauer Parallel Processing Letters (PPL), 22(4),
-December 2012
-
-— It would be appropriate to mention the version of PolyBench: presumably 4.1
-(the latest version with 30 files) is used by the authors.
-
-— The PolyBench reference should be to the following Sourceforge location which
-is being actively updated: http://sourceforge.net/projects/polybench/
-
-
-
-The paper could do with many minor rewrites. Here are some suggestions:
-
-— “…on a large C++ application the overall…” —> “on a large C++ application, the overall…”
-— “…in GCC 6.0 in preparation of turning on…” —> rewrite
-— Abstract: “…larger SCoPs on Polybench 6.09 loops…” —> “…larger SCoPs on Polybench: 6.09 loops…”
-— Section#1.3, page 2. enum list 1: “…that improves over the…” —> “that improves ”
-— p.2. “… represents the relation… ” —> “… represents the relations… ”
-— p.2: “… that integrates the dominators tree…” —> “… that integrates the dominator tree…”
--- ...
-
-
 ----------------------- REVIEW 6 ---------------------
 
 The technical contribution lies in a SCOP detection engine which takes advantage
