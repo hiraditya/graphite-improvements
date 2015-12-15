@@ -144,22 +144,6 @@ The algorithm is well described except for the following points.
   as this information is not related to the functioning of the algorithms
   themselves, it may be included in, e.g. a figure caption;
 
-- In Fig.3, the member access to 'entry' and 'exit' is inconsistent: both
-  indirect (entry->src) and direct (entry.flag) are present;
-
-- In Fig.3, some of the 'return' statements feature a trailing semicolon, and
-  some do not.
-
-More importantly, there is a confusion about the type of 'entry' and 'exit' in
-the Fig.3 and the Sec.3.3.  Are they CFG nodes, i.e. basic blocks, as suggested
-by the description of (Post-)Dominators in the Sec.2.1, or are they edges of CFG
-as described in Sec.3.3?  The function name get_nearest_dom_with... may be the
-source of confusion as it implies "getting a Dominator", i.e. a basic block,
-along with using the structure "bb has 1 predecessor" that may be interpreted as
-"predecessor node" rather than as "incoming edge".  I assume they are edges, and
-I may suggest using typed variables in the algorithm to clarify it beyond the
-text.
-
 Algorithms in Fig.4 should be called recursive rather than iterative unless you
 specifically say that tell-recursion optimization is performed for them.
 

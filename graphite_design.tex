@@ -364,24 +364,25 @@ during the \SCoP{} detection:
 
 \begin{figure}
 \begin{verbatim}
-// Recurse on the loop->inner.
+// Recurse on the loop.inner.
 sese build_scop_depth (sese s1, loop l):
-  s1 = build_scop_depth (s1, l->inner)
-  s2 = merge_sese (s1, get_sese (l))
+  // sese: { edge, edge }
+  s1 = build_scop_depth (s1, l.inner)
+  sese s2 = merge_sese (s1, get_sese (l))
   if (s2 is an invalid scop)
     {
       // s1 might be a valid scop, so return it
       // and start analyzing from the adjacent loop.
-      build_scop_depth (invalid_sese, l->next)
+      build_scop_depth (invalid_sese, l.next)
       return s1
     }
   if (l is an invalid scop in s2)
-    return build_scop_depth (invalid_sese, l->next)
+    return build_scop_depth (invalid_sese, l.next)
   return build_scop_breadth (s2, l)
 
-// Recurse on loop->next.
+// Recurse on loop.next.
 sese build_scop_breadth (sese s1, loop l):
-  sese s2 = build_scop_depth (invalid_sese, l->next)
+  sese s2 = build_scop_depth (invalid_sese, l.next)
   if (s2 is an invalid scop)
     {
       if (s1 is a valid scop)
@@ -482,13 +483,13 @@ sese_t merge_sese (sese_t first, sese_t second):
     return invalid_sese
   edge exit = nearest_pdom_with_single_exit (pdom)
   if (!exit)
-    return invalid_sese;
+    return invalid_sese
 
   // entry and exit should be in the same loop.
   // and hence in the same sese.
-  if (loop_depth (entry->src->loop_father) !=
-      loop_depth (exit->dest->loop_father))
-    return invalid_sese;
+  if (loop_depth (entry.src.loop_father) !=
+      loop_depth (exit.dest.loop_father))
+    return invalid_sese
 
   // edge should belong to reducible loop.
   if (entry.flag == EDGE_IRREDUCIBLE_LOOP
@@ -514,9 +515,9 @@ edge nearest_dom_with_single_entry (bb b):
   if (b has 2 predecessor edges e1 and e2)
     { // Check for a back-edge
       if (e1.src dominates e2.src)
-        return e1;
+        return e1
       if (e2.src dominates e1.src)
-        return e2;
+        return e2
     }
   b = get_immediate_dominator (b)
   return nearest_dom_with_single_entry (b)
@@ -527,9 +528,9 @@ edge nearest_pdom_with_single_exit (bb b):
   if (b has 2 successor edges e1 and e2)
     { // Check for a back-edge
       if (e1.dest post dominates e2.dest)
-        return e1;
+        return e1
       if (e2.dest post dominates e1.dest)
-        return e2;
+        return e2
     }
   b = get_immediate_post_dominator (b)
   return nearest_pdom_with_single_exit (b)
