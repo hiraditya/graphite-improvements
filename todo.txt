@@ -47,13 +47,6 @@ REVIEWER'S CONFIDENCE: 3 (medium)
 Summary:
 ========
 
-This paper describes a new algorithm, implemented in the gcc compiler, to detect
-SCoPs in a C++ program. This algorithm is faster than the existing ones, and
-detects largest SCoPs and more relevant ones. I believe these results to be
-important as a step forward the adoption of polyhedral techniques inside
-industrial-level compilers, even if SCoP detection is only part of the
-polyhedral compilation process. This is why I recommend to accept this paper.
-
 The paper is on the whole well organized, with the exception of Section 2.1. The
 latter lacks examples for the different analyses which are presented. It is also
 hard to understand from this section how the new algorithm relates to the
@@ -78,36 +71,8 @@ Detailed comments:
 
 Check overfull hboxes.
 
-Section 1:
-----------
-
-I don't understand the sentence:
-"Thus, high-level C++ expressions containing exceptions are preserved ... in the
-high-level language." Is "exception" the word you intended? And shouldn't
-"preserved" be replaced by "transformed"?
-
-1.1:
-
-"we want close to zero.. without loops, or no loops of interest ..." -> replace
-"no" by "without"
-
-1.2:
-
-Capitalize the first letters in "single entry single exit".
-
-"... we used an abstraction of the control..." -> replace "used" by "use"
-
-"In order to avoid constructing the SESE region tree": I find this statement
-misleading as your new algorithm constructs SESEs: I don't clearly understand
-what you mean. Maybe you mean that you don't want to build the **whole** SESE
-region tree for each function, or that you want to retrict the construction of
-SESE region trees to those parts of interests for further polyhedral
-compilation.
-
 Section 2:
 ----------
-
-intro: avoid repetition of "then" in first sentence.
 
 It's not really clear from the introduction of Section 2 what is presented in
 Section 2.1. Does it describe the succession of passes in both Graphite and
@@ -115,9 +80,6 @@ Polly? Is it a collection of passes some of which are available in these
 compilers? In this case, explain which ones are available in each compiler, and
 in which order they are scheduled (pictures may be helpful). Are all these
 phases also available in your new implementation? Only some of them?
-
-Why is there an item for SSA, and then an item for "An abstraction of the SSA",
-what is the difference?
 
 A small example would very helpful for the various representations: CFG, SESE,
 natural loops, SSA (especially for loop phi nodes, and loop close phi nodes),
@@ -128,12 +90,6 @@ delinearization analysis interfere with SCoPs detection. in particular, are
 these analyses those already available in gcc, or are they specific to
 polyhedral analyses?
 
-In the last sentence of Section 2.1, you write "to ensure the absence of side
-effects". For me assignments have side effects. So what do you mean? Effects on
-global variables, effects on hidden static variables, effects on libraries
-internals, IO effects, hidden exits, ... ? By the way, how do you detect all
-that?
-
 2.4: I was a bit surprised by this section, because you demonstrate that it may
 not be interesting to detect maximal SCoPs, but at the same time you advocate
 that your algorithm can detect larger SCoPs that other algorithms. So, what is
@@ -143,58 +99,15 @@ meet this criterion?
 Section 3:
 ----------
 
-intro:
-
-"the algorithm assumes following preconditions" -> add "the" before "following"
-
 Figure 2:
 
-give the "types" of the variables, and the types of the objects returned by the
-functions: what are s1, s2, invalid_sese? Sometimes merge_sese seems to return a
-sese, and sometimes a scop. What does add_scop exactly do? It takes a single
-argument, there does not seem to be a "current_scop".
-
 Add line numbers so that you can refer to them in Section 3.1.
-
-Section 3.1
-
-"any SCoP which are either a sub-SCoP or intersects, with the new one" -> "any
-SCoP which either is a sub-SCoP or intersects with a new one.
-
-"This way, the set of SCoPs maintained in the set" -> I guess there are too many
-"set", maybe you mean "This way, the SCoPs maintained in the set".
-
-"no SCoP intersect" -> "no SCoP intersects".
-
-"Since this algorithm starts from the the loop header, it could exclude
-statements before the first,..." -> is it really "it could"? I understand it as
-"it necessarily excludes any statement before the first... that could have been
-detected as belonging to a larger and still valid SCoP".
-
-Section 3.2:
-
-In the title and first sentence, change "an SESE" into "a SESE".
-
-How are pure function calls detected? Is the check purely syntactic from the
-function header, or is the detection based on other analyses, or on user
-annotations? In particular, how do you make sure that there is not static hidden
-variables?
-
-I don't understand the "should" in item 7. Do you mean that this is not a strict
-condition? check the sentence.
-
-Figures 3 and 4: same remarks as Figure 2.
 
 Section 3.3:
 
 What is "viz."?
 
 Section 5:
-
-"This stems from the fact that operating on a higher-level data structure allows
-the program to faster converge...":
-
-1- data structure -> program representation
 
 2- It seems to me that in most cases the sets of natural loops which have good
 chances of being identified as SCoPs are well-formed loops in the program AST,
