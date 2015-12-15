@@ -77,39 +77,12 @@ and alias analyses) results are available...
 
 ----------------------- REVIEW 3 ---------------------
 
-The high complexity and important overhead of the polyhedral compilation is
-indeed the main argument against enabling it by default in production compilers.
-While the complexity of the state-of-the-art polyhedral optimization algorithms
-is inherently exponential and hard to reduce, the SCoP detection algorithm
-offers more opportunities for reducing this overhead.
-
-The paper provides a very instructive overview of the higher-level data
-structures used by the optimizer on the intermediate representation of the code
-in production compilers.  The arguments for using these structures for SCoP
-detection and pruning non-polyhedral parts are sound and the distinction from
-the previous work is clearly stated.  I find the argument against maximal SCoPs
-with outside-of-the-loop statements plausible, given that any extra statement
-will increase the polyhedral optimization time and thus the overall compilation
-with limited benefit for the optimized code. However, the document lacks
+the document lacks
 information about the original design and implementation choices behind GCC's
 current SCoP detection mechanism, which would be insightful (since the authors
 have a deep knowledge about its development).
 
-The algorithm is well presented, despite some minor issues with error handling.
-Being based on the natural loop tree traversal, it is easy to understand,
-analyze and relate to the polyhedral representation.  The evaluation is
-convincingly designed and the speedup for non-polyhedral code is impressive.
-
-Overall, the paper is well written and presents a needed solution for a
-challenging problem.  I recommend to accept this paper.
-
-=== The Review ===
-
 -- Introduction --
-
-Introduction clearly states the problem of fast SCoP detection and sufficiently
-motivates the work on redesigning it to operate on higher-level intermediate
-constructs.
 
 I understand that C++ exceptions are being used as an example of structural
 decomposition happening in the compiler front end, but the relation to SCoPs is
@@ -195,8 +168,6 @@ operational.
 
 
 -- Experimental Results --
-
-The setup of two experiments seems reasonable and the results solid.
 
 For PolyBench results in Fig.5, using test case names would be preferable to
 assigning integer numbers with unclear mapping.  It may be also interesting to
