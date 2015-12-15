@@ -1,51 +1,7 @@
 When addressing a point from the reviews, please remove it from this todo file,
 and commit in the same patch.
 
-
------------------------ REVIEW 1 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 1 (weak accept)
-REVIEWER'S CONFIDENCE: 4 (high)
-
------------ REVIEW -----------
-This paper deals with the problem of detecting Static Control Parts (SCoPs)
-in imperative programs, prior to polyhedral compilation.
-
-For practical reasons, instead of working from the source version of
-the program, the authors take as input the intermediate representation of the
-gcc compiler or of Polly. Since this IR is shared by several compiler
-front-ends, this choice extends the SCoP detection to many languages, and
-adapts at almost no cost to revision of the language syntax or semantics.
-
-The price to pay is a more complex job of analysis. For instance, loops have 
-been destroyed in the IR and must be reconstructed from the control graph. 
-Loop counters must be retrieved by pattern matching on the "scalar evolution"
-results. One of the point of the paper is that the impact of this extra work 
-on compilation time is negligible.
-
-The algorithm attempt to build large SCoPs. On PolyBench programs, the number
-of loops per SCoP is almost double that found by Graphite.
-
-The necessary tehniques are classical and can be found in such texts as 
-ref. [1} or [14]. As such, the paper is more a clever composition of well
-known methods and do not propose anything very new. The paper is clearly
-written and easy to read.
-
-
 ----------------------- REVIEW 2 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 2 (accept)
-REVIEWER'S CONFIDENCE: 3 (medium)
-
------------ REVIEW -----------
-Summary:
-========
 
 The paper is on the whole well organized, with the exception of Section 2.1. The
 latter lacks examples for the different analyses which are presented. It is also
@@ -120,32 +76,6 @@ and alias analyses) results are available...
 
 
 ----------------------- REVIEW 3 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 2 (accept)
-REVIEWER'S CONFIDENCE: 4 (high)
-
------------ REVIEW -----------
-
-This paper presents the SCoP detection algorithm implemented to enable
-polyhedral loop optimization within the next major version of GCC. The authors
-describe their design choices, in particular the use of a higher-level internal
-representation, and compare the algorithm to existing strategies in GCC and LLVM
-both theoretically and experimentally.  The algorithm is evaluated on PolyBench
-and large non-polyhedral code bases resulting in larger SCoP detection for the
-former, and reduced overhead for the latter.
-
-=== Recommendation ===
-
-First of all I would like to stress that this topic is often under-estimated
-while it is a major issue that necessitates both research and extreme
-engineering efforts. The details of the SCoP detection algorithm in production
-compilers is often hidden in the compiler source code and the various design
-choices are known by the contributors only. Disclosing, discussing and
-evaluating the details with such a paper is a strong contribution for the whole
-community.
 
 The high complexity and important overhead of the polyhedral compilation is
 indeed the main argument against enabling it by default in production compilers.
@@ -312,30 +242,6 @@ ISL seems to be written as "isl", all small letters, by its author.
 
 
 ----------------------- REVIEW 4 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 1 (weak accept)
-REVIEWER'S CONFIDENCE: 3 (medium)
-
------------ REVIEW -----------
-Abstract:
-
-The authors present a new algorithm for SCoP detection. The algorithm is based
-on improvements to the handling of the control-flow and the dominator tree. The
-algorithm is already implemented in the GCC 6.0. Experimental results are
-reported on PolyBench and a large C++ benchmark. The results show that the new
-algorithm improves the compilation speed of SCoP detection, and also that larger
-SCoPs are detected.
-
-Evaluation:
-
-The paper is a good improvement over the previous algorithm implemented in
-Graphite. The paper is well written and handles an important problem: reducing
-the compile-time of polyhedral compilation via detecting the SCoP detecting
-time. The improvements are reasonable, and comparison has been done with Polly
-as well.
 
 The paper’s criticism of quadratic nature of Polly’s SESE regions detection is
 weak and not based on practical inputs. It is true that use of Iterated
@@ -380,50 +286,7 @@ The paper could do with many minor rewrites. Here are some suggestions:
 -- ...
 
 
------------------------ REVIEW 5 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 1 (weak accept)
-REVIEWER'S CONFIDENCE: 3 (medium)
-
------------ REVIEW -----------
-This paper presents an improvement of the scop detection algorithm
-used in Graphite. The algorithm operates on the low-level intermediate
-representation of gcc (a CFG) and iterate through the natural loop
-tree by alternating depth- and breadth- traversals to recover affine
-control loops. The algorithm is claimed to act as a filter in front of
-the analysis used by gcc to recover high-level constructions from the low-level
-representation, allowing to reduce the overall compilation time. A
-comparative analysis with the earlier algorithm in Graphite and
-llvm-polly shows an improvement in the compilation time as well as the
-quality of the scops detected (#loop/scop).
-
-Scop detection is an important issue when it comes to plug polyhedral
-analysis into real-life compilers. This contribution provides an
-interesting feed-back for the case of gcc. Although the description of the
-algorithm is not crystal clear (please avoid indirections like: "using the step
-described in the next section, we obtain ..."), I think this paper
-deserves to be accepted for a presentation at IMPACT.
-
-
 ----------------------- REVIEW 6 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 2 (accept)
-REVIEWER'S CONFIDENCE: 3 (medium)
-
------------ REVIEW -----------
-
-This paper presents a faster algorithm for detecting SCOP. The algorithm is
-implemented in the gcc compiler (version 6.0). Support for polyhedral
-compilation in gcc and llvm is of paramount importance for the impact community,
-and I guess most attendees are always happy to hear about any progress done on
-that side. For this reason alone, I think this work would deserve to be
-presented.
 
 The technical contribution lies in a SCOP detection engine which takes advantage
 of the natural loop detection and scev passes in gcc. The proposed approach
@@ -470,30 +333,5 @@ Here are a few remarks:
 
 
 ----------------------- REVIEW 7 ---------------------
-PAPER: 3
-TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
-AUTHORS: Aditya Kumar and Sebastian Pop
-
-OVERALL EVALUATION: 0 (borderline paper)
-REVIEWER'S CONFIDENCE: 4 (high)
-
------------ REVIEW -----------
-
-This is not really a review in the strict sense, and my overall rating of should
-not be taken literally (I haven't carefully evaluated the paper but Easychair
-would not allow me to leave the score blank).
-
-I decided to enter an additional review to voice my pet peeve, since comments
-made during PC discussions are not made visible to authors.
-
 The acronym SCoP si incorrect, and should be replaced by either ACLs (Affine
 Control Loops) or PWAC (Parts With Affine Control, rhymes with quack :-)
-
-The word "static" means "known at compile time" and is a strict superset of the
-codes that are the subject of this paper -- programs with affine control that
-can be modeled with polyhedral sets.  SCoPs include, for example, codes that
-traverse a complete binary tree, programs that update array elements in Morton
-order, and the FFT, where loops indices grow exponentially.  In all these codes,
-the "next" function may involve exponentiation (e.g., repeated doubling as in
-FFT), or bitwise manipulation of the current index, but is completely defined at
-compile time.
