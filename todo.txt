@@ -264,3 +264,6 @@ Here are a few remarks:
 ----------------------- REVIEW 7 ---------------------
 The acronym SCoP si incorrect, and should be replaced by either ACLs (Affine
 Control Loops) or PWAC (Parts With Affine Control, rhymes with quack :-)
+
+Seb: to confuse people even more, I suggest that we change the title of the
+paper to: "ACL -- Austin City Limits: A Fast Tour of an Industrial Compiler City"
