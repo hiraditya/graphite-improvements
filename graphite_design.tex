@@ -9,11 +9,13 @@
 
 \begin{document}
 
+\def \SCoP {SCoP}
+
 \special{papersize=8.5in,11in}
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-\title{SCoP Detection: A Fast Algorithm for Industrial Compilers}
+\title{\SCoP{} Detection: A Fast Algorithm for Industrial Compilers}
 
 \toappear{
    \hrule \vspace{5pt}
@@ -39,21 +41,21 @@ Sebastian Pop\\
 \maketitle
 
 \begin{abstract}
-SCoP detection is a search algorithm that a compiler for imperative programming
+\SCoP{} detection is a search algorithm that a compiler for imperative programming
 languages is using to find loops to be represented and optimized in the
 polyhedral model.
 
-We improved the current algorithms for SCoP detection by operating on the
+We improved the current algorithms for \SCoP{} detection by operating on the
 natural loops tree, a higher level representation of the CFG, in order to lower
 the overall compilation time.  The algorithm described in this paper has been
 implemented in GCC 6.0 as a requirement to enable by default the isl schedule
 optimizer at ``-O3 -fprofile-use''.
 
-We present evidence that the new SCoP detection algorithm improves the overall
+We present evidence that the new \SCoP{} detection algorithm improves the overall
 compilation time: on a large C++ application, the overall compilation time spent
-in SCoP detection was reduced from $7\%$ to $0.3\%$.  Experimental results also
-show that GCC detects larger SCoPs on Polybench: $6.09$ loops per SCoP as
-compared to $2.59$ loops per SCoP with the previous algorithm.
+in \SCoP{} detection was reduced from $7\%$ to $0.3\%$.  Experimental results also
+show that GCC detects larger \SCoP{s} on Polybench: $6.09$ loops per \SCoP{} as
+compared to $2.59$ loops per \SCoP{} with the previous algorithm.
 \end{abstract}
 
 \section{Introduction}
@@ -80,24 +82,24 @@ representation.  This paper describes a fast algorithm to discover, from a
 low-level representation, loops that can be handled and optimized by a
 polyhedral compiler.
 
-\subsection{What are the boundaries of a SCoP?}
+\subsection{What are the boundaries of a \SCoP{?}}
 
 Regions of code that can be handled in the polyhedral model are usually called
-Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as SCoPs.  Usually,
-SCoPs may only contain regular control flow free of exceptions and other
+Static Control Parts \cite{Girbal,Bondhugula}, abbreviated as \SCoP{s}.  Usually,
+\SCoP{s} may only contain regular control flow free of exceptions and other
 constructs that may provoke changes in control flow such as conditional
 expressions dependent on data (read from memory) or side effects of function
 calls.  As the compiler cannot easily handle such constructs in the polyhedral
-model these statements are not integrated in a SCoP, causing a split of the
-region containing such difficult statements into two SCoPs.
+model these statements are not integrated in a \SCoP{}, causing a split of the
+region containing such difficult statements into two \SCoP{s}.
 
 To extend the applicability of polyhedral compilation, \cite{scopExtend}
 presents techniques to represent general conditions, enlarging the limits of
-SCoPs to full function bodies.  We will not consider these SCoP extension
-techniques in the current paper, as we want a fast SCoP detection suitable to be
+\SCoP{s} to full function bodies.  We will not consider these \SCoP{} extension
+techniques in the current paper, as we want a fast \SCoP{} detection suitable to be
 turned on by default at usual optimization levels, like ``-O2'', ``-O3'', and
 ``-Ofast''.  For that, we need an algorithm that is able to quickly converge on
-the largest SCoPs that can profitably be transformed by a polyhedral compiler
+the largest \SCoP{s} that can profitably be transformed by a polyhedral compiler
 like isl \cite{verdoolaege2010isl} within a reasonable amount of compilation
 time.  Practically, on a large number of compiled programs, we want close to
 zero overhead for functions without loops and for functions without any
@@ -105,18 +107,18 @@ interesting loops to polyhedral compilation, and less than ten percent of the
 overall compilation time when optimizing loops for paths shown as hot in the
 profile of the compiled program.
 
-\subsection{High level overview of SCoP detection algorithms}
+\subsection{High level overview of \SCoP{} detection algorithms}
 
-Existing implementations of SCoP detection based on low-level representations
+Existing implementations of \SCoP{} detection based on low-level representations
 are based on some form of representation of the control flow graph: the first
 implementation we did for Graphite \cite{graphite} was based on the control flow
 graph itself and the basic-block dominators tree.  Then Polly improved on this
-SCoP detection \cite{polly, grosser2012polly} by working on an abstraction of
+\SCoP{} detection \cite{polly, grosser2012polly} by working on an abstraction of
 the control-flow graph: the Single Entry Single Exit (SESE) regions tree, a
 representation that integrates the dominator tree with the control flow graph
 \cite{sese}.
 
-In order to avoid constructing the regions tree, and to help the SCoP
+In order to avoid constructing the regions tree, and to help the \SCoP{}
 detection algorithm converge faster on the parts of code that matter to
 polyhedral compilation, we use an abstraction of the control flow graph -- the
 natural loops tree \cite{dragonbook} -- together with dominance information
@@ -129,21 +131,21 @@ compilation.
 
 \subsection{Contributions of this paper}
 \begin{enumerate}
-  \item We present a new algorithm for SCoP detection that improves the
-    existing techniques of extracting SCoPs from a low-level intermediate
+  \item We present a new algorithm for \SCoP{} detection that improves the
+    existing techniques of extracting \SCoP{s} from a low-level intermediate
     representation.
   \item We provide a comparative analysis of the earlier algorithm implemented
-    in Graphite, the SCoP detection as implemented in LLVM-Polly, and the new
-    SCoP detection that we implemented and integrated into GCC.
-  \item We provide an analysis of the shape of SCoPs detected by these three
-    algorithms in terms of the number of SCoPs detected in benchmarks and the
-    number of loops per SCoP.
+    in Graphite, the \SCoP{} detection as implemented in LLVM-Polly, and the new
+    \SCoP{} detection that we implemented and integrated into GCC.
+  \item We provide an analysis of the shape of \SCoP{s} detected by these three
+    algorithms in terms of the number of \SCoP{s} detected in benchmarks and the
+    number of loops per \SCoP{.}
   \item We present results on compilation time improvements.
 \end{enumerate}
 
-\section{Comparative analysis of SCoP detection algorithms}
+\section{Comparative analysis of \SCoP{} detection algorithms}
 
-We first describe the SCoP detection algorithms implemented originally in
+We first describe the \SCoP{} detection algorithms implemented originally in
 Graphite and in Polly, and then we show how the new algorithm improves over
 these earlier implementations.  The common point of all these algorithms is that
 they work on a low-level representation of the program.  Analysis passes are
@@ -251,34 +253,34 @@ programming languages into a polyhedral form \cite{Girbal} containing a very
 high-level information of loop iteration domains, memory accesses, and static
 and dynamic schedules.
 
-To reduce compilation time, the SCoP detection algorithms start from the
+To reduce compilation time, the \SCoP{} detection algorithms start from the
 lowest-level analysis results that are commonly available and try to quickly
 discard parts of code that either cannot be translated in the polyhedral model
 or that cannot be profitably transformed.  The compiler has to quickly evaluate
 whether a part of the code is amenable to translation in the polyhedral model
 before spending time in computing higher-level costly information.  For that
 reason, information about the CFG structure, and the number of loops per
-function are the first checks in the SCoP detection algorithms, followed by a
+function are the first checks in the \SCoP{} detection algorithms, followed by a
 linear walk over all the statements of the region of code to gather more costly
 information.
 
-\subsection{Former SCoP detection in Graphite}
+\subsection{Former \SCoP{} detection in Graphite}
 \label{subsec:graphite-SCoP}
-The first Graphite SCoP detection algorithm was implemented on a very low-level
+The first Graphite \SCoP{} detection algorithm was implemented on a very low-level
 representation of CFG and DOM \cite{graphite}.  These representations were too
 restrictive for the scev analysis to be able to determine the loops to be
 considered as variant and the loops that have to be considered as invariant, in
 which the scev analysis should not analyze and instantiate further scalar
 variables in order to consider them as parameters \cite{scev}.  This resulted in
-a very restrictive limitation of SCoPs that had to have one full loop fully
-contained in the SCoP: for instance a sequence of two loops with no surrounding
-loop would not be represented as a SCoP and the SCoP detection would split these
-two loops into two distinct SCoPs.  This limitation has been removed in GCC 6.0
-by the improvements to the SCoP detection described later in this paper.
+a very restrictive limitation of \SCoP{s} that had to have one full loop fully
+contained in the \SCoP{:} for instance a sequence of two loops with no surrounding
+loop would not be represented as a \SCoP{} and the \SCoP{} detection would split these
+two loops into two distinct \SCoP{s}.  This limitation has been removed in GCC 6.0
+by the improvements to the \SCoP{} detection described later in this paper.
 
-\subsection{Polly SCoP detection on SESE regions}
+\subsection{Polly \SCoP{} detection on SESE regions}
 \label{subsec:polly-SCoP}
-Polly's SCoP detection is based on an analysis of SESE regions \cite{polly}.
+Polly's \SCoP{} detection is based on an analysis of SESE regions \cite{polly}.
 The discovery
 of all the regions in a function may be expensive, especially when the number of
 basic blocks in its CFG is very large.  In the current LLVM implementation of
@@ -289,31 +291,31 @@ frontiers with a simpler check based on the natural loops properties of depth
 levels and regions of the CFG corresponding to irreducible loops, see
 Figure-\ref{fig:merge-sese} in Section-\ref{sec:new-SCoP-detection}.
 
-\subsection{Why maximal SCoPs are not very useful}
+\subsection{Why maximal \SCoP{s} are not very useful}
 \label{subsec:maximality}
-A maximal SCoP is the largest region satisfying all the properties of a SCoP and
+A maximal \SCoP{} is the largest region satisfying all the properties of a \SCoP{} and
 which cannot be further extended.  This concept is currently used in Polly
-\cite{polly} and was used in the previous SCoP detection of Graphite
+\cite{polly} and was used in the previous \SCoP{} detection of Graphite
 \cite{graphite}.
 
 Since the main focus in the polyhedral model is the transformation of loops, all
 code translated in the polyhedral model that is not part of a loop, or part of a
 sequence of loops, only constitutes an overhead in compilation time.  Finding and
-representing a maximal SCoP is not necessary as it is possible to analyze all
+representing a maximal \SCoP{} is not necessary as it is possible to analyze all
 the surrounding conditions and extract constraints on the parameters.
 
-To illustrate our point, consider the maximal SCoP in
+To illustrate our point, consider the maximal \SCoP{} in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
-satisfies the properties of a SCoP, and contains a single loop composed of a
-LoopHeader and a LoopLatch.  All the other blocks of a maximal SCoP
+satisfies the properties of a \SCoP{}, and contains a single loop composed of a
+LoopHeader and a LoopLatch.  All the other blocks of a maximal \SCoP{}
 IfCondition, TrueRegion, and EndIf add extra overhead to the polyhedral
 compilation without real benefit in terms of adding opportunities for loop
-optimizations.  Having a SCoP only containing the loop would prove more
+optimizations.  Having a \SCoP{} only containing the loop would prove more
 beneficial in terms of optimizations and overall compilation time.
 
-The greedy approach of detecting maximal SCoPs is not necessarily optimal in
+The greedy approach of detecting maximal \SCoP{s} is not necessarily optimal in
 terms of compilation time, as well as in terms of performance achieved:
-detecting smaller SCoPs may prove beneficial to compilation time, as well as
+detecting smaller \SCoP{s} may prove beneficial to compilation time, as well as
 narrowing the choices of possible optimizations that would again lead to
 compilation time improvements.
 
@@ -330,13 +332,13 @@ LoopHeader -> EndIf
 TrueRegion -> EndIf
 EndIf -> AfterSESE
 }
-\caption{Maximal SCoP bounded by IfCondition and EndIf}
+\caption{Maximal \SCoP{} bounded by IfCondition and EndIf}
 \label{fig:maximality}
 \end{figure}
 
-\section{A new faster SCoP detection}
+\section{A new faster \SCoP{} detection}
 \label{sec:new-SCoP-detection}
-The new algorithm for SCoP detection works by induction on the structure of the
+The new algorithm for \SCoP{} detection works by induction on the structure of the
 natural loops tree as described in Section-\ref{subsec:induction} and listed in
 Figure-\ref{fig:induction}.  The traversal of the loop tree tries to enlarge a
 region by attaching adjacent or outer valid regions as described in
@@ -344,7 +346,7 @@ Section-\ref{subsec:merge-sese} and listed in Figure-\ref{fig:merge-sese}.
 Section-\ref{subsec:loop-tree} has a brief introduction to the notions and
 properties used in this section; we refer our readers to \cite{ramalingam} for
 an in-depth discussion.  The algorithm assumes the following preconditions
-during the SCoP detection:
+during the \SCoP{} detection:
 \begin{itemize}
 \item The natural loops tree represents a reducible CFG: all edges and basic
   blocks in an irreducible SCC are tagged with an IRREDUCIBLE\_LOOP flag.
@@ -400,33 +402,33 @@ The code inside the loop and all its nested loops are analyzed recursively for
 validity, as described in Section-\ref{subsec:validity} and
 function \texttt{build\_scop\_depth} in
 Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
-the loop-nest becomes a valid SCoP and it is saved in a set of
-already found SCoPs. While adding a new SCoP to the set of detected SCoPs, we
-first remove any SCoP which either is a sub-SCoP (completely surrounded) or
+the loop-nest becomes a valid \SCoP{} and it is saved in a set of
+already found \SCoP{s}. While adding a new \SCoP{} to the set of detected \SCoP{s}, we
+first remove any \SCoP{} which either is a sub-\SCoP{} (completely surrounded) or
 intersects (partially overlaps), with the new one. The way algorithm runs, from
-bottom up for each loop nest, any new SCoP to be added cannot be subsumed by an
-existing SCoP in the set. This way, the SCoPs maintained in the set are
-mutually exclusive w.r.t. the regions they span i.e., no SCoP intersects with
-another in the set of detected SCoPs.
+bottom up for each loop nest, any new \SCoP{} to be added cannot be subsumed by an
+existing \SCoP{} in the set. This way, the \SCoP{s} maintained in the set are
+mutually exclusive w.r.t. the regions they span i.e., no \SCoP{} intersects with
+another in the set of detected \SCoP{s}.
 
 After a valid loop is found, the algorithm analyzes the next loop
 (see \texttt{build\_scop\_breadth} in Figure-\ref{fig:induction}), a loop at
 same depth and immediate sibling of the loop just analyzed.  If an adjacent loop
-is found to be a valid SCoP, we try to merge both loop nests as described in
+is found to be a valid \SCoP{,} we try to merge both loop nests as described in
 Section-\ref{subsec:merge-sese} and Figure-\ref{fig:merge-sese}.  If a combined
-SESE has been found, which subsumes both SCoPs, it is analyzed for
+SESE has been found, which subsumes both \SCoP{s}, it is analyzed for
 validity. Even if we have already analyzed the statements in the combined SESE
-in their respective sub-SCoPs, we need to re-analyze them because the scalar
+in their respective sub-\SCoP{s}, we need to re-analyze them because the scalar
 evolution of the data references change with the region of the program under
-analysis. If the combined SESE represents a valid SCoP, then it is saved, after
-removing any intersecting or sub-SCoPs, and further analysis is continued to
-extend the SCoP again.  If no such SESE could be found, the algorithm keeps them
-as two separate SCoPs, and continues by trying to extend the second SCoP.
+analysis. If the combined SESE represents a valid \SCoP{,} then it is saved, after
+removing any intersecting or sub-\SCoP{s}, and further analysis is continued to
+extend the \SCoP{} again.  If no such SESE could be found, the algorithm keeps them
+as two separate \SCoP{s}, and continues by trying to extend the second \SCoP{.}
 
 With the new approach it is faster to discard many invalid loop-nests early. The
-algorithm analyzes statements which matter most by starting the SCoP detection
+algorithm analyzes statements which matter most by starting the \SCoP{} detection
 from a loop-tree node (CFG node which begins from a loop header). This allows
-discarding unrepresentable loops early in the SCoP-detection process, thereby
+discarding unrepresentable loops early in the \SCoP{}-detection process, thereby
 discarding SESE region surrounding them.  This way, the number of instructions
 to be analyzed for validity reduces to a minimal set.  We start by analyzing
 those statements which are inside a loop, because validity of those statements
@@ -434,12 +436,12 @@ is necessary for the validity of loop.  The statements outside the loop nest can
 be excluded from the SESE if they are not valid.  Since this algorithm starts
 from the loop header, it excludes statements before the first, and after
 the last loop in an SESE.  Also, regions without loops are be excluded if they
-are not surrounded by loops.  SCoPs thus detected are not maximal, in contrast
+are not surrounded by loops.  \SCoP{s} thus detected are not maximal, in contrast
 with the example and discussion in Section-\ref{subsec:maximality}.
 
-\subsection{When is an SESE region a valid SCoP?}
+\subsection{When is an SESE region a valid \SCoP{?}}
 \label{subsec:validity}
-An SESE region is regarded as a valid SCoP when it satisfies the following
+An SESE region is regarded as a valid \SCoP{} when it satisfies the following
 conditions:
 \begin{enumerate}
 \item The entry basic block should have only one predecessor and the exit
@@ -457,7 +459,7 @@ conditions:
   expressions which would have to be code-generated.
 \end{enumerate}
 
-\subsection{Merging SCoPs}
+\subsection{Merging \SCoP{s}}
 \label{subsec:merge-sese}
 
 \begin{figure}
@@ -532,7 +534,7 @@ edge nearest_pdom_with_single_exit (bb b):
 \label{fig:iterate-single-entry}
 \end{figure}
 
-We compose a larger SESE by merging two smaller SCoPs. In order to merge two
+We compose a larger SESE by merging two smaller \SCoP{s}. In order to merge two
 SESEs, as described in Figure-\ref{fig:merge-sese}, to form a new SESE, we
 search the nearest common dominator $dom$ and the nearest common post-dominator
 $pdom$ to form a new region.  After that we find the nearest dominator of $dom$
@@ -558,15 +560,15 @@ algorithm chooses to bail out.  We would like to extend this functionality in th
 future.
 
 If all the previous constraints are satisfied, the algorithm returns a larger
-SESE which subsumes both the SCoPs, otherwise it returns an invalid SESE to
+SESE which subsumes both the \SCoP{s}, otherwise it returns an invalid SESE to
 inform that the merge was unsuccessful.
 
-\subsection{Analysis of the SCoP detection algorithms}
+\subsection{Analysis of the \SCoP{} detection algorithms}
 The new algorithm is linear in the number of loops as it iterates on the
 natural loops tree.  The number of calls to the dominators and post-dominators
 is also linear in the number of loops.
 
-The previous implementation of SCoP detection in Graphite is linear in the
+The previous implementation of \SCoP{} detection in Graphite is linear in the
 number of CFG edges as it discovers regions by walking on the CFG.  In the
 implementation of Polly, the use of iterated dominance frontiers to build the
 SESE regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
@@ -574,14 +576,14 @@ This can be expensive when the function body is large, specially with aggressive
 inlining.
 
 The complexity of the validity function is still a point that could be improved
-in all the SCoP detection algorithms: every statement of the SESE has to be
-validated.  When a SCoP is extended upwards, either including in the larger
+in all the \SCoP{} detection algorithms: every statement of the SESE has to be
+validated.  When a \SCoP{} is extended upwards, either including in the larger
 region sequential loops, or going from an inner loop to an outer loop, the scev
 instantiation point changes, and thus the scevs of inner or lower regions become
 invalid under the new instantiation point, and have to be analyzed again.
 
-The new SCoP detection algorithm helps analyze fewer statements in case of an
-invalid SCoP because it focuses on the structure of the natural loops first
+The new \SCoP{} detection algorithm helps analyze fewer statements in case of an
+invalid \SCoP{} because it focuses on the structure of the natural loops first
 rather than the validity of each statement.
 
 \section{Experimental Results}
@@ -590,7 +592,7 @@ rather than the validity of each statement.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
-  \caption{Speedup of improved SCoP detection on Polybench.}
+  \caption{Speedup of improved \SCoP{} detection on Polybench.}
   \label{fig:polybench-speedup}
 \end {figure}
 
@@ -598,28 +600,28 @@ rather than the validity of each statement.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
-  \caption{Overhead of the new and old SCoP detection on the overall compilation
+  \caption{Overhead of the new and old \SCoP{} detection on the overall compilation
     time when compiling the code of GCC 6.0.}
   \label{fig:gcc-speedup}
 \end {figure}
 
-To compare against the existing SCoP detection algorithms, we set up two
+To compare against the existing \SCoP{} detection algorithms, we set up two
 experiments: first we look at a static metric consisting in counting the number
-of SCoPs and the number of loops in those SCoPs discovered on a set of
+of \SCoP{s} and the number of loops in those \SCoP{s} discovered on a set of
 benchmarks known to contain loops that benefit from polyhedral compilation.
-Then we evaluate how much time the compiler spends on trying to find SCoPs
+Then we evaluate how much time the compiler spends on trying to find \SCoP{s}
 containing meaningful loop nests to be optimized in the polyhedral compilation
 on a large code-base.
 
-\subsection{SCoP metrics on Polybench}
+\subsection{\SCoP{} metrics on Polybench}
 To validate the impact of our changes to the Graphite framework by replacing the
-old SCoP detection algorithm with the new one, we evaluate the number of SCoPs
-and number of loops per SCoP discovered on the Polybench \cite{polybench} in
+old \SCoP{} detection algorithm with the new one, we evaluate the number of \SCoP{s}
+and number of loops per \SCoP{} discovered on the Polybench \cite{polybench} in
 Table-\ref{tab:scop-metrics}.  We also provide the same metrics for Polly, and
 we intentionally do not provide conclusions based on these metrics because a
 fair comparison on these metrics is difficult: the pass ordering and level in
 the pass pipeline at which Graphite and Polly apply are very different, and so
-the shapes of the CFG and natural loops tree on which the SCoP detection applies
+the shapes of the CFG and natural loops tree on which the \SCoP{} detection applies
 are radically different.
 
 \begin{table}[h!]
@@ -628,30 +630,30 @@ are radically different.
       \hline
       Metric                   	& New  & Old  & Polly  \\
       \hline
-      SCoPs          		& 34   & 189  & 30     \\
-      Max loops/SCoP           	& 17   & 8    & 11     \\
-      Min loops/SCoP           	& 2    & 1    & 2      \\
-      SCoPs with min loops/SCoP & 7    & 109  & 3      \\
-      Loops in SCoPs 		& 207  & 316  & 155    \\
-      Loops/SCoP               	& 6.09 & 2.59 & 5.17   \\
+      \SCoP{s}          		& 34   & 189  & 30     \\
+      Max loops/\SCoP{}           	& 17   & 8    & 11     \\
+      Min loops/\SCoP{}           	& 2    & 1    & 2      \\
+      \SCoP{s} with min loops/\SCoP{} & 7    & 109  & 3      \\
+      Loops in \SCoP{s} 		& 207  & 316  & 155    \\
+      Loops/\SCoP{}               	& 6.09 & 2.59 & 5.17   \\
       \hline
     \end{tabular}
   \end{center}
-  \caption{SCoP metrics on Polybench.}
+  \caption{\SCoP{} metrics on Polybench.}
   \label{tab:scop-metrics}
 \end{table}
 
-There were no regressions in Graphite while moving from the old to the new SCoP
+There were no regressions in Graphite while moving from the old to the new \SCoP{}
 detection because the difference: $316 - 207 = 109$, corresponds
-to SCoPs with only one loop.  The new SCoP
-detection discards all SCoPs with less than $2$ loops.
+to \SCoP{s} with only one loop.  The new \SCoP{}
+detection discards all \SCoP{s} with less than $2$ loops.
 
-We also see that the new algorithm discovers larger SCoPs on an average,
-i.e., from $2.59$ to $6.09$ loops per SCoP. This is because, the new
-algorithm allows SESE without a surrounding loop to be a SCoP so that two
-adjacent outermost loops can be a SCoP, which was not possible with the old algorithm
-(Section-\ref{subsec:graphite-SCoP}). Now the largest SCoP discovered has $17$
-loops whereas, with the old SCoP detection the largest SCoP only contained $8$ loops.
+We also see that the new algorithm discovers larger \SCoP{s} on an average,
+i.e., from $2.59$ to $6.09$ loops per \SCoP{.} This is because, the new
+algorithm allows SESE without a surrounding loop to be a \SCoP{} so that two
+adjacent outermost loops can be a \SCoP{,} which was not possible with the old algorithm
+(Section-\ref{subsec:graphite-SCoP}). Now the largest \SCoP{} discovered has $17$
+loops whereas, with the old \SCoP{} detection the largest \SCoP{} only contained $8$ loops.
 
 \subsection{Evaluation of compilation time overhead}
 The current infrastructure to measure the compilation time in GCC isn't precise
@@ -661,7 +663,7 @@ spent in Graphite was a fraction of a second for each benchmark
 in Polybench \cite{polybench}.
 
 We used Valgrind to get more precise data on the number of instructions executed
-by the SCoP detection algorithms.  The command used is:
+by the \SCoP{} detection algorithms.  The command used is:
 \begin{verbatim}
 $ CFLAGS="-Ofast -fgraphite-identity"
 $ valgrind --dsymutil=yes --tool=callgrind \
@@ -675,26 +677,26 @@ the program together with a count of the number of instructions executed by the
 CPU.  The option ``--inclusive=yes'' allows us to gather the total number of
 instructions executed in a function and all the functions called from it.  We
 thus report the number of instructions of the top-level functions of the old and
-new SCoP detectors, respectively build\_scops and build\_scop\_depth.
+new \SCoP{} detectors, respectively build\_scops and build\_scop\_depth.
 
 Table-\ref{tab:overall-insns} presents the overall number of instructions
-executed in the new and old SCoP detection on several benchmarks: Polybench
+executed in the new and old \SCoP{} detection on several benchmarks: Polybench
 \cite{polybench}, a large C++ application Tramp3d-v4 \cite{richi}, and all the
 source files of GCC 6.0.  Columns New and Old report the number of instructions
-executed by the old and new SCoP detectors of GCC; Speedup reports the speedup
+executed by the old and new \SCoP{} detectors of GCC; Speedup reports the speedup
 between Old and New; Main reports the cumulative number of instructions executed
 by the main function of the GCC cc1plus compiler; Old \% and New \% report the
-overall compilation time overhead of the old and new SCoP detection.  On large
-applications, the speedup over the old algorithm for SCoP detection is very
-important: on Tramp3d-v4, the old SCoP detection accounted for $7.0\%$, and
-$0.3\%$ in the new SCoP detection.  On Polybench there is some slowdown
-corresponding to the detection of larger SCoPs: every step in enlarging the SCoP
+overall compilation time overhead of the old and new \SCoP{} detection.  On large
+applications, the speedup over the old algorithm for \SCoP{} detection is very
+important: on Tramp3d-v4, the old \SCoP{} detection accounted for $7.0\%$, and
+$0.3\%$ in the new \SCoP{} detection.  On Polybench there is some slowdown
+corresponding to the detection of larger \SCoP{s}: every step in enlarging the \SCoP{}
 may trigger extra computations for scevs.  The slowdowns only correspond to
 benchmarks with loops that can be optimized by a polyhedral compilation.
 
-Figure-\ref{fig:polybench-speedup} reports the speedup in SCoP detection when
+Figure-\ref{fig:polybench-speedup} reports the speedup in \SCoP{} detection when
 compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} has the
-speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
+speedup in \SCoP{} detection for the $578$ files of the source code of GCC 6.0.
 
 \begin{table}[h!]
   \begin{center}
@@ -712,13 +714,13 @@ speedup in SCoP detection for the $578$ files of the source code of GCC 6.0.
       \hline
     \end{tabular}}
   \end{center}
-  \caption{Overall number of instructions spent in SCoP detection.}
+  \caption{Overall number of instructions spent in \SCoP{} detection.}
   \label{tab:overall-insns}
 \end{table}
 
 \section{Conclusion and Future Work}
-We have shown that our new algorithm of SCoP detection is faster in terms of
-compilation time and that it detects larger SCoPs than the previous
+We have shown that our new algorithm of \SCoP{} detection is faster in terms of
+compilation time and that it detects larger \SCoP{s} than the previous
 implementation in Graphite.  This stems from the fact that operating on a
 higher-level program representation allows the algorithm to converge faster on
 regions that cannot be represented in the polyhedral model.
@@ -729,17 +731,17 @@ compilation time for the majority of programs compiled by an industrial
 compiler: i.e., programs with no loops, or with sparse loops that should not be
 translated into the polyhedral model.
 
-While the new algorithm focuses only on detecting SCoPs with relevant loops,
-it still tries to maximize the size of the SCoP.  This may lead to increased
-polyhedral compilation time.  We think that the SCoP detection should take a
+While the new algorithm focuses only on detecting \SCoP{s} with relevant loops,
+it still tries to maximize the size of the \SCoP{.}  This may lead to increased
+polyhedral compilation time.  We think that the \SCoP{} detection should take a
 more active role in driving the polyhedral optimizations by analyzing the shape
-of the SCoPs and selecting appropriate polyhedral optimizations.
+of the \SCoP{s} and selecting appropriate polyhedral optimizations.
 
 Another way to improve the compilation time of an industrial polyhedral
 compiler, that is not discussed in this paper, is by using the profile
 information collected during an earlier execution of the program and made
 available to the compiler during subsequent compilation: one could use the
-profile information to tune the SCoP detection algorithm to focus only on the
+profile information to tune the \SCoP{} detection algorithm to focus only on the
 hot paths of the program.  We are also investigating techniques to tune the
 amount of compilation time allocated to the polyhedral optimizer (isl
 \cite{verdoolaege2010isl} in case of gcc).
@@ -748,7 +750,7 @@ amount of compilation time allocated to the polyhedral optimizer (isl
 We would like to thank Samsung Austin R\&D Center for supporting our work on
 improving Graphite and Polly.  We would also like to thank Tobias Grosser,
 Johannes Doerfert, and Michael Kruse for discussions on improving the existing
-SCoP detection in Polly.
+\SCoP{} detection in Polly.
 
 \bibliographystyle{abbrv}
 {\small
