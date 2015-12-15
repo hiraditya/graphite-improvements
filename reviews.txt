@@ -1,0 +1,625 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: sebpop@gmail.com
+Received: by 10.107.139.81 with SMTP id n78csp2347609iod;
+        Mon, 7 Dec 2015 08:33:52 -0800 (PST)
+X-Received: by 10.28.100.84 with SMTP id y81mr23649175wmb.48.1449506032525;
+        Mon, 07 Dec 2015 08:33:52 -0800 (PST)
+Return-Path: <impact2016@easychair.org>
+Received: from easychair.org (easychair.org. [213.136.76.235])
+        by mx.google.com with ESMTPS id fl19si37468905wjc.47.2015.12.07.08.33.52
+        for <sebpop@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 07 Dec 2015 08:33:52 -0800 (PST)
+Received-SPF: pass (google.com: best guess record for domain of impact2016@easychair.org designates 213.136.76.235 as permitted sender) client-ip=213.136.76.235;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: best guess record for domain of impact2016@easychair.org designates 213.136.76.235 as permitted sender) smtp.mailfrom=impact2016@easychair.org
+Received: from localhost.localdomain (m2635.contabo.net [213.136.76.235])
+	by easychair.org (8.14.4/8.14.4/Debian-4.1ubuntu1) with ESMTP id tB7GXpbB005857
+	for <sebpop@gmail.com>; Mon, 7 Dec 2015 17:33:51 +0100
+Message-Id: <201512071633.tB7GXpbB005857@easychair.org>
+Content-Disposition: inline
+Content-Transfer-Encoding: binary
+Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+X-Mailer: MIME::Lite 3.030 (F2.84; A2.14; B3.15; Q3.13)
+Date: Mon, 7 Dec 2015 17:33:51 +0100
+From: IMPACT 2016 <impact2016@easychair.org>
+To: Sebastian Pop <sebpop@gmail.com>
+Subject: IMPACT 2016 notification for paper 3
+
+Dear Sebastian,
+
+We are glad to inform you that your paper titled "SCoP Detection: A Fast
+Algorithm for Industrial Compilers submitted to IMPACT 2016 has been accepted.
+
+Please send the camera-ready version of your paper to the co-chairs by December
+21st. We also remind you that at least one of the authors must be able to
+present the paper at the workshop.
+
+Thank you for your submission and we look forward to seeing you at IMPACT!
+
+Michelle Mills Strout and Tomofumi Yuki
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+This paper deals with the problem of detecting Static Control Parts (SCoPs)
+in imperative programs, prior to polyhedral compilation.
+
+For practical reasons, instead of working from the source version of
+the program, the authors take as input the intermediate representation of the
+gcc compiler or of Polly. Since this IR is shared by several compiler
+front-ends, this choice extends the SCoP detection to many languages, and
+adapts at almost no cost to revision of the language syntax or semantics.
+
+The price to pay is a more complex job of analysis. For instance, loops have 
+been destroyed in the IR and must be reconstructed from the control graph. 
+Loop counters must be retrieved by pattern matching on the "scalar evolution"
+results. One of the point of the paper is that the impact of this extra work 
+on compilation time is negligible.
+
+The algorithm attempt to build large SCoPs. On PolyBench programs, the number
+of loops per SCoP is almost double that found by Graphite.
+
+The necessary tehniques are classical and can be found in such texts as 
+ref. [1} or [14]. As such, the paper is more a clever composition of well
+known methods and do not propose anything very new. The paper is clearly
+written and easy to read.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+
+----------- REVIEW -----------
+Summary:
+========
+
+This paper describes a new algorithm, implemented in the gcc compiler, to detect
+SCoPs in a C++ program. This algorithm is faster than the existing ones, and
+detects largest SCoPs and more relevant ones. I believe these results to be
+important as a step forward the adoption of polyhedral techniques inside
+industrial-level compilers, even if SCoP detection is only part of the
+polyhedral compilation process. This is why I recommend to accept this paper.
+
+The paper is on the whole well organized, with the exception of Section 2.1. The
+latter lacks examples for the different analyses which are presented. It is also
+hard to understand from this section how the new algorithm relates to the
+different passes, at which stage it is inserted, or which stage it replaces (see
+the detailed comments). As the paper is not very long (7 pages), I strongly
+suggest that the authors take the time to enhance this part for the sake of
+clarity.
+
+The authors show that the detected SCoPs are largest than with previous
+techniques. It would be interesting to know the impact on the overall
+compilation time (including polyhedral code generation) wrt the efficiency of
+the code generated, to estimate whether the additional SCoPs or SCoP parts lead
+to execution time gains and don't affect too much the compilation time. On the
+Polybench, the authors report a compilation slowdown for SCoP detection which
+leads to more interesting SCoPs, but there is no quantified results. If the
+authors could give these results in the final version of the paper, it would be
+very interesting.
+
+
+Detailed comments:
+==================
+
+Check overfull hboxes.
+
+Section 1:
+----------
+
+I don't understand the sentence:
+"Thus, high-level C++ expressions containing exceptions are preserved ... in the
+high-level language." Is "exception" the word you intended? And shouldn't
+"preserved" be replaced by "transformed"?
+
+1.1:
+
+"we want close to zero.. without loops, or no loops of interest ..." -> replace
+"no" by "without"
+
+1.2:
+
+Capitalize the first letters in "single entry single exit".
+
+"... we used an abstraction of the control..." -> replace "used" by "use"
+
+"In order to avoid constructing the SESE region tree": I find this statement
+misleading as your new algorithm constructs SESEs: I don't clearly understand
+what you mean. Maybe you mean that you don't want to build the **whole** SESE
+region tree for each function, or that you want to retrict the construction of
+SESE region trees to those parts of interests for further polyhedral
+compilation.
+
+Section 2:
+----------
+
+intro: avoid repetition of "then" in first sentence.
+
+It's not really clear from the introduction of Section 2 what is presented in
+Section 2.1. Does it describe the succession of passes in both Graphite and
+Polly? Is it a collection of passes some of which are available in these
+compilers? In this case, explain which ones are available in each compiler, and
+in which order they are scheduled (pictures may be helpful). Are all these
+phases also available in your new implementation? Only some of them?
+
+Why is there an item for SSA, and then an item for "An abstraction of the SSA",
+what is the difference?
+
+A small example would very helpful for the various representations: CFG, SESE,
+natural loops, SSA (especially for loop phi nodes, and loop close phi nodes),
+scev (give an example of scev), which may not be all familiar to all readers.
+
+Explain how pointer analyses, alias analyses, data reference analysis and
+delinearization analysis interfere with SCoPs detection. in particular, are
+these analyses those already available in gcc, or are they specific to
+polyhedral analyses?
+
+In the last sentence of Section 2.1, you write "to ensure the absence of side
+effects". For me assignments have side effects. So what do you mean? Effects on
+global variables, effects on hidden static variables, effects on libraries
+internals, IO effects, hidden exits, ... ? By the way, how do you detect all
+that?
+
+2.4: I was a bit surprised by this section, because you demonstrate that it may
+not be interesting to detect maximal SCoPs, but at the same time you advocate
+that your algorithm can detect larger SCoPs that other algorithms. So, what is
+the right criterion for the extent of a SCoP? And how does your new algorithm
+meet this criterion?
+
+Section 3:
+----------
+
+intro:
+
+"the algorithm assumes following preconditions" -> add "the" before "following"
+
+Figure 2:
+
+give the "types" of the variables, and the types of the objects returned by the
+functions: what are s1, s2, invalid_sese? Sometimes merge_sese seems to return a
+sese, and sometimes a scop. What does add_scop exactly do? It takes a single
+argument, there does not seem to be a "current_scop".
+
+Add line numbers so that you can refer to them in Section 3.1.
+
+Section 3.1
+
+"any SCoP which are either a sub-SCoP or intersects, with the new one" -> "any
+SCoP which either is a sub-SCoP or intersects with a new one.
+
+"This way, the set of SCoPs maintained in the set" -> I guess there are too many
+"set", maybe you mean "This way, the SCoPs maintained in the set".
+
+"no SCoP intersect" -> "no SCoP intersects".
+
+"Since this algorithm starts from the the loop header, it could exclude
+statements before the first,..." -> is it really "it could"? I understand it as
+"it necessarily excludes any statement before the first... that could have been
+detected as belonging to a larger and still valid SCoP".
+
+Section 3.2:
+
+In the title and first sentence, change "an SESE" into "a SESE".
+
+How are pure function calls detected? Is the check purely syntactic from the
+function header, or is the detection based on other analyses, or on user
+annotations? In particular, how do you make sure that there is not static hidden
+variables?
+
+I don't understand the "should" in item 7. Do you mean that this is not a strict
+condition? check the sentence.
+
+Figures 3 and 4: same remarks as Figure 2.
+
+Section 3.3:
+
+What is "viz."?
+
+Section 5:
+
+"This stems from the fact that operating on a higher-level data structure allows
+the program to faster converge...":
+
+1- data structure -> program representation
+
+2- It seems to me that in most cases the sets of natural loops which have good
+chances of being identified as SCoPs are well-formed loops in the program AST,
+not separated by any weird control flow due to gotos, returns, ... Wouldn't it
+be more effective to perform the analysis on an even higher-level
+representation, closer to the AST (I have in mind for instance PIPS's HCFG,
+which retains the AST whenever possible and switches to a local CFG otherwise)?
+This of course may also depend on how other analyses (such as pointer analyses
+and alias analyses) results are available...
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+
+This paper presents the SCoP detection algorithm implemented to enable
+polyhedral loop optimization within the next major version of GCC. The authors
+describe their design choices, in particular the use of a higher-level internal
+representation, and compare the algorithm to existing strategies in GCC and LLVM
+both theoretically and experimentally.  The algorithm is evaluated on PolyBench
+and large non-polyhedral code bases resulting in larger SCoP detection for the
+former, and reduced overhead for the latter.
+
+=== Recommendation ===
+
+First of all I would like to stress that this topic is often under-estimated
+while it is a major issue that necessitates both research and extreme
+engineering efforts. The details of the SCoP detection algorithm in production
+compilers is often hidden in the compiler source code and the various design
+choices are known by the contributors only. Disclosing, discussing and
+evaluating the details with such a paper is a strong contribution for the whole
+community.
+
+The high complexity and important overhead of the polyhedral compilation is
+indeed the main argument against enabling it by default in production compilers.
+While the complexity of the state-of-the-art polyhedral optimization algorithms
+is inherently exponential and hard to reduce, the SCoP detection algorithm
+offers more opportunities for reducing this overhead.
+
+The paper provides a very instructive overview of the higher-level data
+structures used by the optimizer on the intermediate representation of the code
+in production compilers.  The arguments for using these structures for SCoP
+detection and pruning non-polyhedral parts are sound and the distinction from
+the previous work is clearly stated.  I find the argument against maximal SCoPs
+with outside-of-the-loop statements plausible, given that any extra statement
+will increase the polyhedral optimization time and thus the overall compilation
+with limited benefit for the optimized code. However, the document lacks
+information about the original design and implementation choices behind GCC's
+current SCoP detection mechanism, which would be insightful (since the authors
+have a deep knowledge about its development).
+
+The algorithm is well presented, despite some minor issues with error handling.
+Being based on the natural loop tree traversal, it is easy to understand,
+analyze and relate to the polyhedral representation.  The evaluation is
+convincingly designed and the speedup for non-polyhedral code is impressive.
+
+Overall, the paper is well written and presents a needed solution for a
+challenging problem.  I recommend to accept this paper.
+
+=== The Review ===
+
+-- Introduction --
+
+Introduction clearly states the problem of fast SCoP detection and sufficiently
+motivates the work on redesigning it to operate on higher-level intermediate
+constructs.
+
+I understand that C++ exceptions are being used as an example of structural
+decomposition happening in the compiler front end, but the relation to SCoPs is
+not always evident for the reader.
+
+Some argument on why conservative SCoP detection as in [2] results in large
+overheads may strengthen the motivation for the current work. In particular, it
+is not clear to me why it would make the SCoP detection itself more expensive as
+it relaxes and simplifies SCoP constraints. This is obviously different for
+optimization because SCoPs would be larger, but this is another question.
+
+
+-- Comparative Analysis ... --
+
+The first subsection gives a very nice brief overview of the pertinent data
+structures maintained by the compiler during the optimization process.  However,
+given its length, the reader may wonder as to why all these structures are
+relevant for the SCoP extraction.  Starting with a short argument on the utility
+of the natural loops representation may help.  Also, analyses that actually
+generate a representation are mixed with others. The authors may consider to
+separate them.
+
+Although it may seem evident, it is worth saying that CFG nodes are called basic
+blocks (the term is never defined but used in description of CFG edges).
+
+The authors may want to clarify that their argument against maximal SCoPs
+concerns mostly the outside-of-the-loop statements that still have static
+control.  While it is true that "detecting smaller SCoPs may prove beneficial to
+compilation time", it may seem that it reduces the possibility for optimization
+choice as well thus resulting in less optimal programs. Fig. 1 does not seem to
+be quite necessary to understand the idea, if some space is needed for other
+purpose.
+
+-- A New Faster SCoP Detection --
+
+The algorithm is well described except for the following points.
+
+- when the a SCoP partially covered by another SCoP gets removed from the list,
+  is the non-overlapping part lost for the further analysis?
+
+- In Fig.2, line 9, the result of the recursive call to build_scop_depth() is
+  ignored; I suppose the call is made for side-effects of the eventual call to
+  build_scop_breadth() calling add_scop() in turn, but the connection is not
+  clear enough; I appreciate the effort of reporting the algorithm as close to
+  the implementation as possible, but algorithms with side-effects may look
+  confusing to the reader;
+
+- In Fig.2, line 18, s2 variable has a type sese_l, but no other variables have
+  types; although assigning types to everything may be a good idea, see below;
+
+- In Fig.3, in the C-style checks for if(!entry) and if(!exit), how entry and
+  exit may be NULL?  the get_nearest_(p)dom_single_entry() functions never
+  return NULL according to pseudocode in Fig.4; also, it may worth writing "not
+  found" instead of C-style pointer inversion;
+
+- More generally, I assume that all CFG or natural loop tree traversal functions
+  (a) return NULL if a node is not found and (b) include a recursion bound
+  condition when their arguments are NULL, but this is not stated in the paper;
+  as this information is not related to the functioning of the algorithms
+  themselves, it may be included in, e.g. a figure caption;
+
+- In Fig.3, the member access to 'entry' and 'exit' is inconsistent: both
+  indirect (entry->src) and direct (entry.flag) are present;
+
+- In Fig.3, some of the 'return' statements feature a trailing semicolon, and
+  some do not.
+
+More importantly, there is a confusion about the type of 'entry' and 'exit' in
+the Fig.3 and the Sec.3.3.  Are they CFG nodes, i.e. basic blocks, as suggested
+by the description of (Post-)Dominators in the Sec.2.1, or are they edges of CFG
+as described in Sec.3.3?  The function name get_nearest_dom_with... may be the
+source of confusion as it implies "getting a Dominator", i.e. a basic block,
+along with using the structure "bb has 1 predecessor" that may be interpreted as
+"predecessor node" rather than as "incoming edge".  I assume they are edges, and
+I may suggest using typed variables in the algorithm to clarify it beyond the
+text.
+
+Algorithms in Fig.4 should be called recursive rather than iterative unless you
+specifically say that tell-recursion optimization is performed for them.
+
+If all my assumptions listed above are correct, the algorithm looks fully
+operational.
+
+
+-- Experimental Results --
+
+The setup of two experiments seems reasonable and the results solid.
+
+For PolyBench results in Fig.5, using test case names would be preferable to
+assigning integer numbers with unclear mapping.  It may be also interesting to
+report the outcome of the SCoP detection along with the speedup/slowdown for
+this benchmark, e.g. did the case with ~0.33 speedup resulted in three times
+larger SCoPs?
+
+Contrary to the last paragraph, Fig.6 does not immediately report detection
+speedup on the GCC source files, but allows to analyze the ratio between the
+percentage of the compilation time spent in SCoP detection compared to overall
+compilation time.  Given that the overall compilation time decreased as well,
+namely due to analyzing less SCoPs that were detected, assessing speedup may be
+challenging.
+
+Finally, the authors report that the new SCoP detection algorithm does not
+consider single-loop SCoPs in the results, but do not mention whether it was a
+deliberate choice or a side effect of the algorithm and what may be the negative
+repercussions of it (or positive with respect to detection speedup).
+
+(I guess it is, but is the phase ordering and phases the same when comparing GCC
+6.0's SCoP detection against the old one ? My question is just in case it was
+not possible for both SCoP detection mechanisms to coexist in GCC 6.0
+development version.)
+
+-- Conclusion --
+
+After the motivating introduction, I wonder will, in the end, the polyhedral
+optimization be enabled by default in GCC and at which levels?
+
+Similarly, the conclusion leaves profile-guided optimization for the future work
+while the abstract makes allusion to “-fprofile-use” flag enabling it.
+
+-- Typos --
+
+"may or do not" sounds misleading
+"specially when" -> especially when
+"linked with inner loop, and next loop" -> no comma
+"SSA form [4]," -> no comma
+"properties of natural loops, dominators, post-dominators properties" -> ...
+"Mechanism to compute the evolution of scalars in a region" -> add "exists"?
+"both the SCoPs" -> both SCoPs
+ISL seems to be written as "isl", all small letters, by its author.
+
+
+----------------------- REVIEW 4 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+
+----------- REVIEW -----------
+Abstract:
+
+The authors present a new algorithm for SCoP detection. The algorithm is based
+on improvements to the handling of the control-flow and the dominator tree. The
+algorithm is already implemented in the GCC 6.0. Experimental results are
+reported on PolyBench and a large C++ benchmark. The results show that the new
+algorithm improves the compilation speed of SCoP detection, and also that larger
+SCoPs are detected.
+
+Evaluation:
+
+The paper is a good improvement over the previous algorithm implemented in
+Graphite. The paper is well written and handles an important problem: reducing
+the compile-time of polyhedral compilation via detecting the SCoP detecting
+time. The improvements are reasonable, and comparison has been done with Polly
+as well.
+
+The paper’s criticism of quadratic nature of Polly’s SESE regions detection is
+weak and not based on practical inputs. It is true that use of Iterated
+Dominance Frontier (IDF) can lead to a quadratic behavior on loops, but, those
+variety of codes are based on pathological constructs
+[Cytron—Ferrante-TOPLAS-95, Figures 1 and 2] which may not occur in practice. It
+is likely that Polly does not suffer from this limitation on practical inputs.
+
+The paper’s reliance of SCC components and depths of loops is quite similar to
+the approach of Sreedhar-Gao-Lee-TOPLAS-96 who use an additional annotation on
+their dominance trees (which they call as “DJ graphs”).  A comparison of the
+paper's approach with the above work would be appropriate.
+
+Given the concept and the implementation, the paper is appropriate for IMPACT
+conference in an implementation track. However, the contributions
+(theoretical/empirical study) could have been more intense: hence the low rating
+for acceptance.
+
+Remarks for the authors:
+
+— Instead of referring to the IMPACT-2011 paper by Grosser et al (ref#8), the
+Polly paper should refer to the following PPL paper.  Tobias Grosser, Armin
+Größlinger, Christian Lengauer Parallel Processing Letters (PPL), 22(4),
+December 2012
+
+— It would be appropriate to mention the version of PolyBench: presumably 4.1
+(the latest version with 30 files) is used by the authors.
+
+— The PolyBench reference should be to the following Sourceforge location which
+is being actively updated: http://sourceforge.net/projects/polybench/
+
+
+
+The paper could do with many minor rewrites. Here are some suggestions:
+
+— “…on a large C++ application the overall…” —> “on a large C++ application, the overall…”
+— “…in GCC 6.0 in preparation of turning on…” —> rewrite
+— Abstract: “…larger SCoPs on Polybench 6.09 loops…” —> “…larger SCoPs on Polybench: 6.09 loops…”
+— Section#1.3, page 2. enum list 1: “…that improves over the…” —> “that improves ”
+— p.2. “… represents the relation… ” —> “… represents the relations… ”
+— p.2: “… that integrates the dominators tree…” —> “… that integrates the dominator tree…”
+-- ...
+
+
+----------------------- REVIEW 5 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+
+----------- REVIEW -----------
+This paper presents an improvement of the scop detection algorithm
+used in Graphite. The algorithm operates on the low-level intermediate
+representation of gcc (a CFG) and iterate through the natural loop
+tree by alternating depth- and breadth- traversals to recover affine
+control loops. The algorithm is claimed to act as a filter in front of
+the analysis used by gcc to recover high-level constructions from the low-level
+representation, allowing to reduce the overall compilation time. A
+comparative analysis with the earlier algorithm in Graphite and
+llvm-polly shows an improvement in the compilation time as well as the
+quality of the scops detected (#loop/scop).
+
+Scop detection is an important issue when it comes to plug polyhedral
+analysis into real-life compilers. This contribution provides an
+interesting feed-back for the case of gcc. Although the description of the
+algorithm is not crystal clear (please avoid indirections like: "using the step
+described in the next section, we obtain ..."), I think this paper
+deserves to be accepted for a presentation at IMPACT.
+
+
+----------------------- REVIEW 6 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+
+----------- REVIEW -----------
+
+This paper presents a faster algorithm for detecting SCOP. The algorithm is
+implemented in the gcc compiler (version 6.0). Support for polyhedral
+compilation in gcc and llvm is of paramount importance for the impact community,
+and I guess most attendees are always happy to hear about any progress done on
+that side. For this reason alone, I think this work would deserve to be
+presented.
+
+The technical contribution lies in a SCOP detection engine which takes advantage
+of the natural loop detection and scev passes in gcc. The proposed approach
+makes the choice of not always looking for the largest enclosing scop in order
+to save compile time. This makes perfectly sense when SCOP detection represents
+a significant part of the compiler run-time, however, given the results provided
+in section 4, it is not clear how relevant this design choice is.
+
+Here are a few remarks:
+
+ - The claim of subsection 2.4 should however be a bit nuanced, or backed with
+   quantitative evidence. In that example, the « if » guard expression may bring
+   valuable context information on the domain parameters, which in turn can have
+   a significant impact on the efficiency of the generated code.
+
+ - Since the technique is based on a tree-based representation for loop, how
+   different the technique is from those used in source-level polyhedral tools
+   such as Pet, Clan, PolyRose, etc.
+
+ - I believe the authors should provide a little bit more background (and an
+   example) on the specific SSA representation used in this work and its
+   relation with the scev pass (this may be done at the expense of the reminder
+   on CFG, dominance tree, which are normally well understood).
+
+ - The typesetting for algorithms (figure 2,3,4) make them difficult to follow
+   (and ugly!), please use one of the numerous latex algorithm packages to
+   improve the rendering. Also, I found the description/explanation of the
+   algorithms a bit redundant with the algorithm themselves, and would have
+   preferred to have examples instead.
+
+ - Although I understand that the goal of the paper is not to compare against
+   polly/llvm, I was a bit frustrated after reading section 4.1. I would have
+   appreciated that authors discuss a bit more in details the difference (and
+   impact of these difference) between polly and the proposed
+   approach. Similarly, the authors should explain with more details how SCOP
+   extraction was performed in earlier version of graphite, and why it could not
+   benefit from scev (this is a bit unclear).
+
+ - The performance results are a bit disappointing, in the sense that the
+   initial SCOP detection runtime did not seem to have significant overhead (<2%
+   of compile time). This somewhat makes the performance improvement less
+   relevant.  It maybe that such a performance gain is a big deal in practice,
+   but this should be explained/motivated.
+
+
+----------------------- REVIEW 7 ---------------------
+PAPER: 3
+TITLE: SCoP Detection: A Fast Algorithm for Industrial Compilers
+AUTHORS: Aditya Kumar and Sebastian Pop
+
+OVERALL EVALUATION: 0 (borderline paper)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+
+This is not really a review in the strict sense, and my overall rating of should
+not be taken literally (I haven't carefully evaluated the paper but Easychair
+would not allow me to leave the score blank).
+
+I decided to enter an additional review to voice my pet peeve, since comments
+made during PC discussions are not made visible to authors.
+
+The acronym SCoP si incorrect, and should be replaced by either ACLs (Affine
+Control Loops) or PWAC (Parts With Affine Control, rhymes with quack :-)
+
+The word "static" means "known at compile time" and is a strict superset of the
+codes that are the subject of this paper -- programs with affine control that
+can be modeled with polyhedral sets.  SCoPs include, for example, codes that
+traverse a complete binary tree, programs that update array elements in Morton
+order, and the FFT, where loops indices grow exponentially.  In all these codes,
+the "next" function may involve exponentiation (e.g., repeated doubling as in
+FFT), or bitwise manipulation of the current index, but is completely defined at
+compile time.
