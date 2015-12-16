@@ -305,9 +305,10 @@ which cannot be further extended.  This concept is currently used in Polly
 
 Since the main focus in the polyhedral model is the transformation of loops, all
 code translated in the polyhedral model that is not part of a loop, or part of a
-sequence of loops, only constitutes an overhead in compilation time.  Finding and
-representing a maximal \SCoP{} is not necessary as it is possible to analyze all
-the surrounding conditions and extract constraints on the parameters.
+sequence of loops, only constitutes an overhead in compilation time.  Finding
+and representing a maximal \SCoP{} is not necessary as it is possible to analyze
+all the surrounding conditions and extract constraints on the parameters while
+translating the IR to the polyhedral representation (after SCoP detection).
 
 To illustrate our point, consider the maximal \SCoP{} in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
@@ -402,34 +403,40 @@ sese build_scop_breadth (sese s1, loop l):
 \label{fig:induction}
 \end{figure}
 
-The traversal of the natural loops tree starts at a loop-nest at depth one
-(the loop at depth zero is the function body).
-The code inside the loop and all its nested loops are analyzed recursively for
-validity, as described in Section-\ref{subsec:validity} and
-function \texttt{build\_scop\_depth} in
+The traversal of the natural loops tree starts at a loop-nest at depth one (the
+loop at depth zero is the function body).  The code inside the loop and all its
+nested loops are analyzed recursively for validity, as described in
+Section-\ref{subsec:validity} and function \texttt{build\_scop\_depth} in
 Figure-\ref{fig:induction}.  Once all the validity constraints are satisfied,
-the loop-nest becomes a valid \SCoP{} and it is saved in a set of
-already found \SCoP{s}. While adding a new \SCoP{} to the set of detected \SCoP{s}, we
-first remove any \SCoP{} which either is a sub-\SCoP{} (completely surrounded) or
-intersects (partially overlaps), with the new one. The way algorithm runs, from
-bottom up for each loop nest, any new \SCoP{} to be added cannot be subsumed by an
-existing \SCoP{} in the set. This way, the \SCoP{s} maintained in the set are
-mutually exclusive w.r.t. the regions they span i.e., no \SCoP{} intersects with
-another in the set of detected \SCoP{s}.
+the loop-nest becomes a valid \SCoP{} and it is saved in a set of already found
+\SCoP{s}. While adding a new \SCoP{} to the set of detected \SCoP{s}, we first
+remove any \SCoP{} which either is a sub-\SCoP{} (completely surrounded) or
+intersects (partially overlaps), with the new one. The \SCoP{} which only
+intersects with the new one is completely lost and we do not try to recover the
+non-intersecting portion for now. We would like to extend this in future. The
+way algorithm runs, from bottom up for each loop nest, any new \SCoP{} to be
+added cannot be subsumed by an existing \SCoP{} in the set. This way, the
+\SCoP{s} maintained in the set are mutually exclusive w.r.t. the regions they
+span i.e., no \SCoP{} intersects with another in the set of detected \SCoP{s}.
+It may be noted that the return value of \texttt{build\_scop\_depth} in line 10
+has not been captured. This is because the algorithm goes two ways, first part
+s1 is to be returned while the algorithm continues from the next loop at the
+same depth.
 
-After a valid loop is found, the algorithm analyzes the next loop
-(see \texttt{build\_scop\_breadth} in Figure-\ref{fig:induction}), a loop at
-same depth and immediate sibling of the loop just analyzed.  If an adjacent loop
-is found to be a valid \SCoP{,} we try to merge both loop nests as described in
+After a valid loop is found, the algorithm analyzes the next loop (see
+\texttt{build\_scop\_breadth} in Figure-\ref{fig:induction}), a loop at same
+depth and immediate sibling of the loop just analyzed.  If an adjacent loop is
+found to be a valid \SCoP{,} we try to merge both loop nests as described in
 Section-\ref{subsec:merge-sese} and Figure-\ref{fig:merge-sese}.  If a combined
 \SESE{} has been found, which subsumes both \SCoP{s}, it is analyzed for
-validity. Even if we have already analyzed the statements in the combined \SESE{}
-in their respective sub-\SCoP{s}, we need to re-analyze them because the scalar
-evolution of the data references change with the region of the program under
-analysis. If the combined \SESE{} represents a valid \SCoP{,} then it is saved, after
-removing any intersecting or sub-\SCoP{s}, and further analysis is continued to
-extend the \SCoP{} again.  If no such \SESE{} could be found, the algorithm keeps them
-as two separate \SCoP{s}, and continues by trying to extend the second \SCoP{.}
+validity. Even if we have already analyzed the statements in the combined
+\SESE{} in their respective sub-\SCoP{s}, we need to re-analyze them because the
+scalar evolution of the data references change with the region of the program
+under analysis. If the combined \SESE{} represents a valid \SCoP{,} then it is
+saved, after removing any intersecting or sub-\SCoP{s}, and further analysis is
+continued to extend the \SCoP{} again.  If no such \SESE{} could be found, the
+algorithm keeps them as two separate \SCoP{s}, and continues by trying to extend
+the second \SCoP{.}
 
 With the new approach it is faster to discard many invalid loop-nests early. The
 algorithm analyzes statements which matter most by starting the \SCoP{} detection
@@ -479,10 +486,10 @@ sese_t merge_sese (sese_t first, sese_t second):
   bb pdom = ncpd (first.exit, second.exit)
 
   edge entry = nearest_dom_with_single_entry (dom)
-  if (!entry)
+  if (entry not found)
     return invalid_sese
   edge exit = nearest_pdom_with_single_exit (pdom)
-  if (!exit)
+  if (exit not found)
     return invalid_sese
 
   // entry and exit should be in the same loop.
@@ -535,7 +542,7 @@ edge nearest_pdom_with_single_exit (bb b):
   b = get_immediate_post_dominator (b)
   return nearest_pdom_with_single_exit (b)
 \end{verbatim}
-\caption{Iterative computation of a single entry dominator and a single exit
+\caption{Recursive computation of a single entry dominator and a single exit
   post-dominator}
 \label{fig:iterate-single-entry}
 \end{figure}
@@ -556,18 +563,18 @@ basic block also qualifies as a post-dominator with a single exit.
 
 After such entry and exit edges have been found, we check whether the entry
 basic block of the region, which is the destination of the entry edge
-$entry.dest$ dominates the exit basic block of the region, which is the source
+$entry.dest$, dominates the exit basic block of the region, which is the source
 basic block of the exit edge $exit.src$.  Similarly, $exit.src$ should
-post-dominate the $entry.dest$.  Also, the bounding basic blocks -- source
-basic block of the entry edge and the destination basic block of exit edge --
-should belong to the same loop depth.  It is possible to continue extending the
-region by finding edges satisfying both these conditions, although for now the
-algorithm chooses to bail out.  We would like to extend this functionality in the
-future.
+post-dominate the $entry.dest$.  Also, the bounding basic blocks -- source basic
+block of the entry edge and the destination basic block of exit edge -- should
+belong to the same loop depth.  It is possible to continue extending the region
+by finding edges satisfying both these conditions, although for now the
+algorithm chooses to bail out.  We would like to extend this functionality in
+the future.
 
 If all the previous constraints are satisfied, the algorithm returns a larger
-\SESE{} which subsumes both the \SCoP{s}, otherwise it returns an invalid \SESE{} to
-inform that the merge was unsuccessful.
+\SESE{} which subsumes both the \SCoP{s}, otherwise it returns an invalid
+\SESE{} to inform that the merge was unsuccessful.
 
 \subsection{Analysis of the \SCoP{} detection algorithms}
 The new algorithm is linear in the number of loops as it iterates on the

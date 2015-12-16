@@ -103,47 +103,15 @@ of the natural loops representation may help.  Also, analyses that actually
 generate a representation are mixed with others. The authors may consider to
 separate them.
 
-Although it may seem evident, it is worth saying that CFG nodes are called basic
-blocks (the term is never defined but used in description of CFG edges).
-
-The authors may want to clarify that their argument against maximal SCoPs
-concerns mostly the outside-of-the-loop statements that still have static
-control.  While it is true that "detecting smaller SCoPs may prove beneficial to
-compilation time", it may seem that it reduces the possibility for optimization
-choice as well thus resulting in less optimal programs. Fig. 1 does not seem to
-be quite necessary to understand the idea, if some space is needed for other
-purpose.
-
 -- A New Faster SCoP Detection --
 
 The algorithm is well described except for the following points.
-
-- when the a SCoP partially covered by another SCoP gets removed from the list,
-  is the non-overlapping part lost for the further analysis?
-
-- In Fig.2, line 9, the result of the recursive call to build_scop_depth() is
-  ignored; I suppose the call is made for side-effects of the eventual call to
-  build_scop_breadth() calling add_scop() in turn, but the connection is not
-  clear enough; I appreciate the effort of reporting the algorithm as close to
-  the implementation as possible, but algorithms with side-effects may look
-  confusing to the reader;
-
-- In Fig.2, line 18, s2 variable has a type sese_l, but no other variables have
-  types; although assigning types to everything may be a good idea, see below;
-
-- In Fig.3, in the C-style checks for if(!entry) and if(!exit), how entry and
-  exit may be NULL?  the get_nearest_(p)dom_single_entry() functions never
-  return NULL according to pseudocode in Fig.4; also, it may worth writing "not
-  found" instead of C-style pointer inversion;
 
 - More generally, I assume that all CFG or natural loop tree traversal functions
   (a) return NULL if a node is not found and (b) include a recursion bound
   condition when their arguments are NULL, but this is not stated in the paper;
   as this information is not related to the functioning of the algorithms
   themselves, it may be included in, e.g. a figure caption;
-
-Algorithms in Fig.4 should be called recursive rather than iterative unless you
-specifically say that tell-recursion optimization is performed for them.
 
 If all my assumptions listed above are correct, the algorithm looks fully
 operational.
