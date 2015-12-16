@@ -558,8 +558,8 @@ After such entry and exit edges have been found, we check whether the entry
 basic block of the region, which is the destination of the entry edge
 $entry.dest$ dominates the exit basic block of the region, which is the source
 basic block of the exit edge $exit.src$.  Similarly, $exit.src$ should
-post-dominate the $entry.dest$.  Also, the bounding basic blocks viz., source
-basic block of the entry edge and the destination basic block of exit edge,
+post-dominate the $entry.dest$.  Also, the bounding basic blocks -- source
+basic block of the entry edge and the destination basic block of exit edge --
 should belong to the same loop depth.  It is possible to continue extending the
 region by finding edges satisfying both these conditions, although for now the
 algorithm chooses to bail out.  We would like to extend this functionality in the

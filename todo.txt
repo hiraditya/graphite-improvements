@@ -61,8 +61,6 @@ Add line numbers so that you can refer to them in Section 3.1.
 
 Section 3.3:
 
-What is "viz."?
-
 Section 5:
 
 2- It seems to me that in most cases the sets of natural loops which have good
