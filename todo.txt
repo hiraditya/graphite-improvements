@@ -3,8 +3,8 @@ and commit in the same patch.
 
 ----------------------- REVIEW 2 ---------------------
 
-The paper is on the whole well organized, with the exception of Section 2.1. The
-latter lacks examples for the different analyses which are presented. It is also
+The paper is on the whole well organized, with the exception of Section 2.1.
+It is also
 hard to understand from this section how the new algorithm relates to the
 different passes, at which stage it is inserted, or which stage it replaces (see
 the detailed comments). As the paper is not very long (7 pages), I strongly

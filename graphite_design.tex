@@ -14,6 +14,7 @@
 \def \LLVM {LLVM}
 \def \SESE {SESE}
 \def \CFG {CFG}
+\def \SSA {SSA}
 \def \scev {scev}
 
 \special{papersize=8.5in,11in}
@@ -164,7 +165,7 @@ information about specific aspects of the program through program analysis:
 \begin{itemize}
 \item The control flow graph (\CFG{}) \cite{dragonbook} is built on top of a goto
   based intermediate representation: each node of the \CFG{} represents a basic
-  block i.e., the largest number of statements to be executed sequentially
+  block, i.e., the largest number of statements to be executed sequentially
   without branches, and the edges of the \CFG{} correspond to the jumps between
   basic blocks.
 
@@ -198,40 +199,99 @@ information about specific aspects of the program through program analysis:
   edges and nodes of the \CFG{} involved in that SCC are marked with a flag
   IRREDUCIBLE\_LOOP.
 
-\item Static Single Assignment (SSA) form \cite{cytron} inserts extra scalar
+\item Static Single Assignment (\SSA) form \cite{cytron} inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
   variables are either the result of expressions, or the result of phi nodes
   placed at control flow junctions in basic blocks that are target of two or
   more control flow edges.  Assignments from phi nodes represent all the
-  possible assignments considering the control flow graph. The abstraction of
-  SSA representation is that of a declarative language \cite{spop2007} in which
-  there are no assignments or imperative language constructs.  The abstraction
-  only represents the computation of scalar variables that are either the result
-  of arithmetic expressions, or the result of two kinds of phi nodes loop phi
-  nodes and loop close phi nodes. Loop phi nodes have two arguments, one is
-  defined outside the loop containing the phi node, and the other is defined
-  inside the loop.  Loop close phi nodes have only one argument that is defined
-  in an inner loop.
+  possible assignments considering the control flow graph.  For example,
+  \begin{verbatim}
+a = 0;
+b = 0;
+loop:
+  a = a + 1;
+  b = a * 2;
+  if (a > 10)
+    goto end;
+  goto loop;
+end:
+c = b;
+  \end{verbatim}
+  is translated to \SSA{} by adding new variable names and phi nodes that merge
+  values at control-flow junctions:
+  \begin{verbatim}
+a_0 = 0;
+b_1 = 0;
+loop:
+  a_2 = phi (a_0, a_4);
+  b_3 = phi (b_1, b_5);
+  a_4 = a_2 + 1;
+  b_5 = a_4 * 2;
+  if (a_4 > 10)
+    goto end;
+  goto loop;
+end:
+c_6 = phi (b_5);
+  \end{verbatim}
+
+  An abstract view of the \SSA{} representation is a declarative language
+  \cite{spop2007} in which there are no assignments or imperative language
+  constructs: it only represents the computation of scalar variables that are
+  either the result of arithmetic expressions, or the result of two kinds of phi
+  nodes.  Loop-phi nodes define recursive expressions: a first argument of
+  loop-phi nodes defines the initial value, and a second argument defines the
+  recursion by using self-references.  For example,
+  \begin{verbatim}
+a = loop_1-phi (0, a + 1)
+b = loop_1-phi (0, 2 * a)
+  \end{verbatim}
+  $a$ is defined as $0$ on the first iteration, and uses a self-reference
+  expression $a+1$ for all other iterations; $b$ is defined to have the value
+  $0$ in the first iteration, followed by an expression that references another
+  loop-phi node $2 * a$ for all the subsequent iterations.
+
+  Loop close-phi nodes compute the last value defined in a loop by a loop-phi
+  node: they correspond to the min or max operators of partial recursive
+  functions.  For example,
+  \begin{verbatim}
+c = loop_1-close-phi (b, a > 10)
+  \end{verbatim}
+  $c$ is defined as the value of $b$ on the first iteration when $a$ becomes
+  greater than $10$: in this particular example, the value of $c$ can be
+  statically evaluated to $22$.
 
 \item The analysis of scalar evolutions (\scev{}) \cite{scev} starts from the
-  abstraction of the SSA representation described above by recognizing the
-  evolution function of scalar variables for loop phi nodes, loop close phi
+  abstraction of the \SSA{} representation described above by recognizing the
+  evolution function of scalar variables for loop phi nodes, loop close-phi
   nodes, and derived scalar declarations.  Loop phi nodes are declared by an
   initial value and an expression containing a self reference, when the self
   reference appears in an addition expression together with a scalar value or an
   invariant expression in the current loop, the \scev{} represents a recursive
-  function with linear or affine evolution.  Loop close phi nodes are declared
+  function with linear or affine evolution.  Loop close-phi nodes are declared
   as the last value computed by an expression that may variate in a loop, the
   \scev{} then represents a partial recursive function.  All other scalar
   declarations can be expressed as \scev{s} derived from declarations of other
-  recursive and partial recursive functions.
+  recursive and partial recursive functions.  \scev{} analysis would provide the
+  following expressions for the above running example:
+  \begin{verbatim}
+a = {0, +, 1}_1
+b = {0, +, 2}_1
+c = 22
+  \end{verbatim}
 
-\item The analysis of the number of iterations \cite{scev} provides a \scev{} that
-  represents the number of times a loop is executed.  The number of iterations
-  is computed as the \scev{} of a close phi node, or last value, of a \scev{} starting
-  at zero and incremented by one at each iteration of the loop.  The number of
-  iterations can also be computed by isl, as we provide the \scev{s} of all the
-  variables involved in each condition that we translate.
+\item The analysis of the number of iterations \cite{scev} provides a \scev{}
+  that represents the number of times a loop is executed.  The number of
+  iterations is computed as the \scev{} of a close-phi node, or last value, of a
+  \scev{} starting at zero and incremented by one at each iteration of the loop.
+  In the running example, the number of iterations can be computed as the value
+  of
+\begin{verbatim}
+  n = loop_1-close-phi (a, a > 10)
+\end{verbatim}
+  and $n$ would be statically evaluated to $11$.
+
+  The number of iterations can also be computed by isl, as we provide the
+  \scev{s} of all the variables involved in each condition that we translate.
 
 \item Pointer analysis detects base and access functions for all memory
   locations that are accessed in the program.
