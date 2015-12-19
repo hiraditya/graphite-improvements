@@ -641,19 +641,19 @@ The new algorithm is linear in the number of loops as it iterates on the
 natural loops tree.  The number of calls to the dominators and post-dominators
 is also linear in the number of loops.
 
-The previous implementation of \SCoP{} detection in Graphite is linear in the
+The previous implementation of \SCoP{} detection in Graphite was linear in the
 number of \CFG{} edges as it discovers regions by walking on the \CFG{.}  In the
 implementation of Polly, the use of iterated dominance frontiers to build the
 \SESE{} regions tree may lead to quadratic behavior in some cases \cite{ramalingam}.
 This can be expensive when the function body is large, specially with aggressive
 inlining.
 
-The complexity of the validity function is still a point that could be improved
+The complexity of the validating function is still a point that could be improved
 in all the \SCoP{} detection algorithms: every statement of the \SESE{} has to be
 validated.  When a \SCoP{} is extended upwards, either including in the larger
 region sequential loops, or going from an inner loop to an outer loop, the \scev{}
 instantiation point changes, and thus the \scev{s} of inner or lower regions become
-invalid under the new instantiation point, and have to be analyzed again.
+invalid under the new instantiation point, and have to be reanalyzed.
 
 The new \SCoP{} detection algorithm helps analyze fewer statements in case of an
 invalid \SCoP{} because it focuses on the structure of the natural loops first
