@@ -84,13 +84,6 @@ Similarly, the conclusion leaves profile-guided optimization for the future work
 while the abstract makes allusion to “-fprofile-use” flag enabling it.
 
 
------------------------ REVIEW 4 ---------------------
-
-The paper’s reliance of SCC components and depths of loops is quite similar to
-the approach of Sreedhar-Gao-Lee-TOPLAS-96 who use an additional annotation on
-their dominance trees (which they call as “DJ graphs”).  A comparison of the
-paper's approach with the above work would be appropriate.
-
 ----------------------- REVIEW 6 ---------------------
 
 Here are a few remarks:

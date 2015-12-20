@@ -220,6 +220,15 @@ information about specific aspects of the program through program analysis:
   edges and nodes of the \CFG{} involved in that SCC are marked with a flag
   IRREDUCIBLE\_LOOP.
 
+  \cite{sreedhar1996identifying} contains the description of an algorithm to
+  detect natural loops in the presence of irreducible control flow: the main
+  objective is to detect reducible natural loops and minimize the number and
+  span of irreducible regions, to confine the effect of irreducibility (i.e.,
+  inability to optimize loops) to small regions.  To detect reducible regions
+  nested within irreducible regions, and to detect finer irreducible regions,
+  they use the loop nesting level information, an information that we also use
+  in our improved \SCoP{} detection algorithm.
+
 \item Static Single Assignment (\SSA) form \cite{cytron} inserts extra scalar
   variables such that each definition is unique.  The assignments to scalar
   variables are either the result of expressions, or the result of phi nodes
