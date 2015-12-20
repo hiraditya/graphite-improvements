@@ -418,7 +418,15 @@ LoopHeader and a LoopLatch.  All the other blocks of a maximal \SCoP{}
 IfCondition, TrueRegion, and EndIf add extra overhead to the polyhedral
 compilation without real benefit in terms of adding opportunities for loop
 optimizations.  Having a \SCoP{} only containing the loop would prove more
-beneficial in terms of optimizations and overall compilation time.
+beneficial in terms of optimizations and overall compilation time.  The reader
+could argue that the guard expression in IfCondition may bring valuable context
+information on the domain parameters, which in turn can have a significant
+impact on the efficiency of the generated code.  This is correct, however the
+compiler does not need to extend the \SCoP{} to contain the IfCondition to be
+able to extract the same information about the parameters: indeed, the
+constraints on parameters are extracted from outer conditions, variable types,
+and everything else the compiler can reason about the parameter variables
+defined outside the \SCoP{}.
 
 The greedy approach of detecting maximal \SCoP{s} is not necessarily optimal in
 terms of compilation time, as well as in terms of performance achieved:

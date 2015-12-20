@@ -102,19 +102,9 @@ in section 4, it is not clear how relevant this design choice is.
 
 Here are a few remarks:
 
- - The claim of subsection 2.4 should however be a bit nuanced, or backed with
-   quantitative evidence. In that example, the « if » guard expression may bring
-   valuable context information on the domain parameters, which in turn can have
-   a significant impact on the efficiency of the generated code.
-
  - Since the technique is based on a tree-based representation for loop, how
    different the technique is from those used in source-level polyhedral tools
    such as Pet, Clan, PolyRose, etc.
-
- - I believe the authors should provide a little bit more background (and an
-   example) on the specific SSA representation used in this work and its
-   relation with the scev pass (this may be done at the expense of the reminder
-   on CFG, dominance tree, which are normally well understood).
 
  - The typesetting for algorithms (figure 2,3,4) make them difficult to follow
    (and ugly!), please use one of the numerous latex algorithm packages to
