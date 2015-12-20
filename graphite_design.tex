@@ -7,10 +7,16 @@
 \usepackage{graphviz}
 \usepackage{auto-pst-pdf}
 \usepackage{etoolbox}
+\usepackage{enumitem}
 
 \makeatletter
 \preto{\@verbatim}{\topsep=1pt \partopsep=0pt}
 \makeatother
+
+%@Sebastian: Following is optional, please add if you like or, if it helps restructuring the enums.
+
+\setlist[enumerate]{itemsep=0.2ex,topsep=2pt,leftmargin=*}
+\setlist[itemize]{itemsep=0.2ex,topsep=2pt,leftmargin=*}
 
 \begin{document}
 
@@ -816,7 +822,7 @@ between Old and New; Main reports the cumulative number of instructions executed
 by the main function of the \GCC{} cc1plus compiler; Old \% and New \% report the
 overall compilation time overhead of the old and new \SCoP{} detection.  On large
 applications, the speedup over the old algorithm for \SCoP{} detection is very
-important: on Tramp3d-v4, the old \SCoP{} detection accounted for $7.0\%$, and
+important: on Tramp3d-v4, the old \SCoP{} detection accounted for $7.0\%$, vs.
 $0.3\%$ in the new \SCoP{} detection.  On Polybench there is some slowdown
 corresponding to the detection of larger \SCoP{s}: every step in enlarging the \SCoP{}
 may trigger extra computations for \scev{s}.  The slowdowns only correspond to
@@ -910,6 +916,9 @@ We would like to thank Samsung Austin R\&D Center for supporting our work on
 improving Graphite and Polly.  We would also like to thank Tobias Grosser,
 Johannes Doerfert, and Michael Kruse for discussions on improving the existing
 \SCoP{} detection in Polly.
+
+%To prevent overlap of the title REFERENCES with references.
+\mbox{}
 
 \bibliographystyle{abbrv}
 {\small
