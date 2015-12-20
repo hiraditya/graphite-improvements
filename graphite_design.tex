@@ -6,6 +6,11 @@
 \usepackage{amssymb}
 \usepackage{graphviz}
 \usepackage{auto-pst-pdf}
+\usepackage{etoolbox}
+
+\makeatletter
+\preto{\@verbatim}{\topsep=1pt \partopsep=0pt}
+\makeatother
 
 \begin{document}
 
@@ -254,8 +259,8 @@ c_6 = phi (b_5);
   \cite{spop2007} in which there are no assignments or imperative language
   constructs: it only represents the computation of scalar variables that are
   either the result of arithmetic expressions, or the result of two kinds of phi
-  nodes.  Loop-phi nodes define recursive expressions: a first argument of
-  loop-phi nodes defines the initial value, and a second argument defines the
+  nodes.  Loop-phi nodes define recursive expressions: the first argument of a
+  loop-phi node defines the initial value, and the second argument defines the
   recursion by using self-references.  For example,
   \begin{verbatim}
 a = loop_1-phi (0, a + 1)
@@ -294,6 +299,11 @@ a = {0, +, 1}_1
 b = {0, +, 2}_1
 c = 22
   \end{verbatim}
+
+  The \scev{} of $a$ shows that it's initial value is $0$ and every iteration
+  the value increments ($+$), by $1$. Similarly for $b$ but the value increases
+  by $2$ every iteration.  Since $c$ is evaluated outside the loop its value
+  does not change.
 
 \item The analysis of the number of iterations \cite{scev} provides a \scev{}
   that represents the number of times a loop is executed.  The number of
