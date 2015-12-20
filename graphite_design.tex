@@ -829,15 +829,16 @@ the ratio of how many instructions are used for the original and improved
 executed for the compilation of the $578$ files of the source code of \GCC{}
 6.0.
 
-It may appear to the reader that the initial \SCoP{} detection overhead was low
-enough for industrial uses, i.e., less than $2\%$ of the total compilation time.
-However, when looking at Table-\ref{tab:overall-insns}, we see that cumulatively
-over the large codebase of the source code of \GCC{,} the improvement of the new
+It may appear to the reader that the initial \SCoP{} detection had low enough
+overhead for industrial use, i.e., less than $2\%$ of the total compilation
+time.  However, when looking at Table-\ref{tab:overall-insns}, we see that
+cumulatively over the large codebase of \GCC{,} the improvement of the new
 \SCoP{} detection results in an order of magnitude reduction: $1.5e^{10}$
-vs{.}{~}$6.7e^8$ number of instructions used for \SCoP{} detection.  In essence,
-in order to enable polyhedral compilation by default in an industrial compiler,
-the \SCoP{} detection should be as neutral as possible, as it is the only part
-of a polyhedral compiler that will execute on all codes.
+vs{.}{~}$6.7e^8$ number of instructions used for \SCoP{} detection.
+Essentially, in order to enable polyhedral optimization by default in an
+industrial compiler, the \SCoP{} detection should be as neutral as possible, as
+it is the only part of a polyhedral compiler that has to scan the complete
+program.
 
 \begin{table}[h!]
   \begin{center}
