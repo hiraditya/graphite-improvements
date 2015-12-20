@@ -22,11 +22,6 @@ Check overfull hboxes.
 Section 2:
 ----------
 
-Explain how pointer analyses, alias analyses, data reference analysis and
-delinearization analysis interfere with SCoPs detection. in particular, are
-these analyses those already available in gcc, or are they specific to
-polyhedral analyses?
-
 2.4: I was a bit surprised by this section, because you demonstrate that it may
 not be interesting to detect maximal SCoPs, but at the same time you advocate
 that your algorithm can detect larger SCoPs that other algorithms. So, what is

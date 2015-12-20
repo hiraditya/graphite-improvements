@@ -311,8 +311,27 @@ c = 22
 \item Alias analysis disambiguates the base pointers and identifies which
   pointers may access the same memory locations.
 
-\item Data reference analysis uses the results of the \scev{} analysis to determine
-  the memory access patterns of pointers in loops.
+\item Data reference analysis uses the results of pointer, alias, and \scev{}
+  analyses to determine the memory access patterns of arrays and pointers in
+  loops.  \SCoP{} detection uses the data reference analysis to determine
+  whether memory accesses are linear and suitable for polyhedral representation.
+  Frequently the compiler linearizes the access functions of a multi-dimensional
+  array into base pointer plus offset, leading to access functions that cannot
+  be represented in the polyhedral model: for example, in the following code
+  \begin{verbatim}
+int N;
+int A[10][N];
+for (int i = 0; i < 10; i++)
+  for (int j = 0; j < N; j++)
+    A[i][j] = 42;
+  \end{verbatim}
+  the linear form of the array access $A[i][j]$ is $A + i * N * 4 + j * 4$.  As
+  $N$ is a parameter and $i$ is an induction variable, the polyhedral model
+  cannot represent $i*N$.  In order to represent such array accesses, the
+  \SCoP{} detection needs to verify that the access function is actually that of
+  a multi-dimensional array, and thus it calls a delinearization pass over all
+  memory accesses to retrieve the array multi-dimensions lost in the translation
+  from the front-end to the middle-end.
 
 \item The delinearization analysis \cite{delinearization1, delinearization2}
   reconstructs a high-level representation of arrays under the form of Fortran
