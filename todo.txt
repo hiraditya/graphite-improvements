@@ -86,13 +86,6 @@ while the abstract makes allusion to “-fprofile-use” flag enabling it.
 
 ----------------------- REVIEW 4 ---------------------
 
-The paper’s criticism of quadratic nature of Polly’s SESE regions detection is
-weak and not based on practical inputs. It is true that use of Iterated
-Dominance Frontier (IDF) can lead to a quadratic behavior on loops, but, those
-variety of codes are based on pathological constructs
-[Cytron—Ferrante-TOPLAS-95, Figures 1 and 2] which may not occur in practice. It
-is likely that Polly does not suffer from this limitation on practical inputs.
-
 The paper’s reliance of SCC components and depths of loops is quite similar to
 the approach of Sreedhar-Gao-Lee-TOPLAS-96 who use an additional annotation on
 their dominance trees (which they call as “DJ graphs”).  A comparison of the
@@ -136,12 +129,6 @@ Here are a few remarks:
    approach. Similarly, the authors should explain with more details how SCOP
    extraction was performed in earlier version of graphite, and why it could not
    benefit from scev (this is a bit unclear).
-
- - The performance results are a bit disappointing, in the sense that the
-   initial SCOP detection runtime did not seem to have significant overhead (<2%
-   of compile time). This somewhat makes the performance improvement less
-   relevant.  It maybe that such a performance gain is a big deal in practice,
-   but this should be explained/motivated.
 
 
 ----------------------- REVIEW 7 ---------------------
