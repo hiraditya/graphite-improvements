@@ -756,10 +756,14 @@ are radically different.
   \label{tab:scop-metrics}
 \end{table}
 
-There were no regressions in Graphite while moving from the old to the new \SCoP{}
-detection because the difference: $316 - 207 = 109$, corresponds
-to \SCoP{s} with only one loop.  The new \SCoP{}
-detection discards all \SCoP{s} with less than $2$ loops.
+There were no regressions in Graphite while moving from the old to the new
+\SCoP{} detection because the difference: $316 - 207 = 109$, corresponds to
+\SCoP{s} with only one loop.  The improved algorithm for \SCoP{} detection does
+allow for the discovery of \SCoP{s} with single loops, which could be profitably
+transformed as the polyhedral model could expose parallelism and vectorization
+opportunities.  In our implementation we deliberately have chosen to discards
+all \SCoP{s} with less than $2$ loops, a choice we will revisit when we will
+have a reason to enable single loop \SCoP{s}.
 
 We also see that the new algorithm discovers larger \SCoP{s} on an average,
 i.e., from $2.59$ to $6.09$ loops per \SCoP{.} This is because, the new

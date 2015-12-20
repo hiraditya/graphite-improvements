@@ -75,16 +75,6 @@ report the outcome of the SCoP detection along with the speedup/slowdown for
 this benchmark, e.g. did the case with ~0.33 speedup resulted in three times
 larger SCoPs?
 
-Finally, the authors report that the new SCoP detection algorithm does not
-consider single-loop SCoPs in the results, but do not mention whether it was a
-deliberate choice or a side effect of the algorithm and what may be the negative
-repercussions of it (or positive with respect to detection speedup).
-
-(I guess it is, but is the phase ordering and phases the same when comparing GCC
-6.0's SCoP detection against the old one ? My question is just in case it was
-not possible for both SCoP detection mechanisms to coexist in GCC 6.0
-development version.)
-
 -- Conclusion --
 
 After the motivating introduction, I wonder will, in the end, the polyhedral
