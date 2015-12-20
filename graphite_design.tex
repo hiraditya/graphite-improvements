@@ -167,6 +167,14 @@ example, when a \SCoP{} is extended upwards, a variable that used to be
 considered a parameter of the \SCoP{} could be analyzable in the context of the
 larger extended \SCoP{.}
 
+The following analysis passes are both available in \LLVM{} and \GCC{.}
+Graphite and Polly are using these analysis passes to detect \SCoP{s}, with
+differences in the order, composition, and use of the passes.  The main
+difference that will be described in detail in the paper is the use of a high
+level representation of natural loops and irreducible strongly connected
+components instead of a more raw representation of the same information under
+the form of dominance or dominance frontier.
+
 Starting from a low-level representation of the program, a compiler extracts
 information about specific aspects of the program through program analysis:
 

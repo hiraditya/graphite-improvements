@@ -22,17 +22,6 @@ Check overfull hboxes.
 Section 2:
 ----------
 
-It's not really clear from the introduction of Section 2 what is presented in
-Section 2.1. Does it describe the succession of passes in both Graphite and
-Polly? Is it a collection of passes some of which are available in these
-compilers? In this case, explain which ones are available in each compiler, and
-in which order they are scheduled (pictures may be helpful). Are all these
-phases also available in your new implementation? Only some of them?
-
-A small example would very helpful for the various representations: CFG, SESE,
-natural loops, SSA (especially for loop phi nodes, and loop close phi nodes),
-scev (give an example of scev), which may not be all familiar to all readers.
-
 Explain how pointer analyses, alias analyses, data reference analysis and
 delinearization analysis interfere with SCoPs detection. in particular, are
 these analyses those already available in gcc, or are they specific to
