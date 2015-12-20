@@ -93,13 +93,6 @@ paper's approach with the above work would be appropriate.
 
 ----------------------- REVIEW 6 ---------------------
 
-The technical contribution lies in a SCOP detection engine which takes advantage
-of the natural loop detection and scev passes in gcc. The proposed approach
-makes the choice of not always looking for the largest enclosing scop in order
-to save compile time. This makes perfectly sense when SCOP detection represents
-a significant part of the compiler run-time, however, given the results provided
-in section 4, it is not clear how relevant this design choice is.
-
 Here are a few remarks:
 
  - Since the technique is based on a tree-based representation for loop, how
