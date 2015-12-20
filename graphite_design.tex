@@ -284,11 +284,7 @@ c = 22
   iterations is computed as the \scev{} of a close-phi node, or last value, of a
   \scev{} starting at zero and incremented by one at each iteration of the loop.
   In the running example, the number of iterations can be computed as the value
-  of
-\begin{verbatim}
-  n = loop_1-close-phi (a, a > 10)
-\end{verbatim}
-  and $n$ would be statically evaluated to $11$.
+  of $a$ when exiting the loop, and could be statically evaluated to $11$.
 
   The number of iterations can also be computed by isl, as we provide the
   \scev{s} of all the variables involved in each condition that we translate.
