@@ -47,10 +47,6 @@ have a deep knowledge about its development).
 
 -- Introduction --
 
-I understand that C++ exceptions are being used as an example of structural
-decomposition happening in the compiler front end, but the relation to SCoPs is
-not always evident for the reader.
-
 Some argument on why conservative SCoP detection as in [2] results in large
 overheads may strengthen the motivation for the current work. In particular, it
 is not clear to me why it would make the SCoP detection itself more expensive as
@@ -78,13 +74,6 @@ assigning integer numbers with unclear mapping.  It may be also interesting to
 report the outcome of the SCoP detection along with the speedup/slowdown for
 this benchmark, e.g. did the case with ~0.33 speedup resulted in three times
 larger SCoPs?
-
-Contrary to the last paragraph, Fig.6 does not immediately report detection
-speedup on the GCC source files, but allows to analyze the ratio between the
-percentage of the compilation time spent in SCoP detection compared to overall
-compilation time.  Given that the overall compilation time decreased as well,
-namely due to analyzing less SCoPs that were detected, assessing speedup may be
-challenging.
 
 Finally, the authors report that the new SCoP detection algorithm does not
 consider single-loop SCoPs in the results, but do not mention whether it was a

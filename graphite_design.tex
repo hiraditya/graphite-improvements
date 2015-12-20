@@ -808,8 +808,11 @@ may trigger extra computations for \scev{s}.  The slowdowns only correspond to
 benchmarks with loops that can be optimized by a polyhedral compilation.
 
 Figure-\ref{fig:polybench-speedup} reports the speedup in \SCoP{} detection when
-compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} has the
-speedup in \SCoP{} detection for the $578$ files of the source code of \GCC{} 6.0.
+compiling the $32$ files of Polybench, and Figure-\ref{fig:gcc-speedup} presents
+the ratio of how many instructions are used for the original and improved
+\SCoP{} detection implementations against the overall number of instructions
+executed for the compilation of the $578$ files of the source code of \GCC{}
+6.0.
 
 \begin{table}[h!]
   \begin{center}
