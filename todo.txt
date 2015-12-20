@@ -19,23 +19,12 @@ Detailed comments:
 
 Check overfull hboxes.
 
-Section 2:
-----------
-
-2.4: I was a bit surprised by this section, because you demonstrate that it may
-not be interesting to detect maximal SCoPs, but at the same time you advocate
-that your algorithm can detect larger SCoPs that other algorithms. So, what is
-the right criterion for the extent of a SCoP? And how does your new algorithm
-meet this criterion?
-
 Section 3:
 ----------
 
 Figure 2:
 
 Add line numbers so that you can refer to them in Section 3.1.
-
-Section 3.3:
 
 Section 5:
 
@@ -67,17 +56,6 @@ overheads may strengthen the motivation for the current work. In particular, it
 is not clear to me why it would make the SCoP detection itself more expensive as
 it relaxes and simplifies SCoP constraints. This is obviously different for
 optimization because SCoPs would be larger, but this is another question.
-
-
--- Comparative Analysis ... --
-
-The first subsection gives a very nice brief overview of the pertinent data
-structures maintained by the compiler during the optimization process.  However,
-given its length, the reader may wonder as to why all these structures are
-relevant for the SCoP extraction.  Starting with a short argument on the utility
-of the natural loops representation may help.  Also, analyses that actually
-generate a representation are mixed with others. The authors may consider to
-separate them.
 
 -- A New Faster SCoP Detection --
 

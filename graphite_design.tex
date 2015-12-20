@@ -399,7 +399,7 @@ code translated in the polyhedral model that is not part of a loop, or part of a
 sequence of loops, only constitutes an overhead in compilation time.  Finding
 and representing a maximal \SCoP{} is not necessary as it is possible to analyze
 all the surrounding conditions and extract constraints on the parameters while
-translating the IR to the polyhedral representation (after SCoP detection).
+translating the IR to the polyhedral representation (after \SCoP{} detection).
 
 To illustrate our point, consider the maximal \SCoP{} in
 Figure-\ref{fig:maximality}: suppose that the region from IfCondition to EndIf
@@ -415,6 +415,15 @@ terms of compilation time, as well as in terms of performance achieved:
 detecting smaller \SCoP{s} may prove beneficial to compilation time, as well as
 narrowing the choices of possible optimizations that would again lead to
 compilation time improvements.
+
+We do not yet have a heuristic on how to limit the \SCoP{s} to only those
+regions containing loops that can be profitably transformed by a polyhedral
+compilation, leading to performance improvements.  Our implementation of the
+\SCoP{} detection still tries to maximize the size of \SCoP{s}, with the
+exception that it will not detect regions of code without loops.  We think that
+\SCoP{} detection is the right place to implement heuristics based on the shape
+of the code to avoid the high cost of the translation into the polyhedral
+representation.
 
 \begin{figure}
 \centering
