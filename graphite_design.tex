@@ -471,6 +471,7 @@ LoopHeader -> EndIf
 TrueRegion -> EndIf
 EndIf -> AfterSESE
 }
+
 \caption{Maximal \SCoP{} bounded by IfCondition and EndIf}
 \label{fig:maximality}
 \end{figure}
@@ -688,7 +689,7 @@ qualifies as a dominator with single entry.  Similarly, we find nearest
 post-dominator of $pdom$ with single exit.  For this, we iterate on the
 post-dominator tree until we find such basic block.  If any of the
 post-dominators has two successors but one of them is a back edge, then that
-basic block also qualifies as a post-dominator with a single exit.
+basic block also qualifies as a post-dominator with single exit.
 
 After such entry and exit edges have been found, we check whether the entry
 basic block of the region, which is the destination of the entry edge
@@ -832,6 +833,10 @@ benchmarks with loops that can be optimized by a polyhedral compilation.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{polybench/speedup}}
   \end{center}
+
+  % For controlling the spacing between caption and figure.
+  \vspace{-1em}
+
   \caption{Speedup of improved \SCoP{} detection on Polybench.}
   \label{fig:polybench-speedup}
 \end {figure}
@@ -840,6 +845,10 @@ benchmarks with loops that can be optimized by a polyhedral compilation.
   \begin{center}
     \resizebox{\linewidth}{!}{\input{gcc/speedup}}
   \end{center}
+
+  % For controlling the spacing between caption and figure.
+  \vspace{-1em}
+
   \caption{Overhead of the new and old \SCoP{} detection on the overall compilation
     time when compiling the code of \GCC{} 6.0.}
   \label{fig:gcc-speedup}
@@ -917,8 +926,8 @@ improving Graphite and Polly.  We would also like to thank Tobias Grosser,
 Johannes Doerfert, and Michael Kruse for discussions on improving the existing
 \SCoP{} detection in Polly.
 
-%To prevent overlap of the title REFERENCES with references.
-\mbox{}
+%Add or remove, to prevent overlap of the title REFERENCES with references.
+%\mbox{}
 
 \bibliographystyle{abbrv}
 {\small
