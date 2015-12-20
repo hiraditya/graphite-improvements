@@ -159,6 +159,14 @@ building more synthetic representations as described in the next subsection.
 
 \subsection{Code analysis: from low-level to higher-level representations}
 
+\SCoP{} analysis orchestrates the call to several analysis passes that will be
+described in this subsection.  \SCoP{} detection calls on demand each of the
+following analysis passes, caching the results for the polyhedral translation
+pass, or asking for different analysis results when the context changes, for
+example, when a \SCoP{} is extended upwards, a variable that used to be
+considered a parameter of the \SCoP{} could be analyzable in the context of the
+larger extended \SCoP{.}
+
 Starting from a low-level representation of the program, a compiler extracts
 information about specific aspects of the program through program analysis:
 
