@@ -310,10 +310,10 @@ b = {0, +, 2}_1
 c = 22
   \end{verbatim}
 
-  The \scev{} of $a$ shows that it's initial value is $0$ and every iteration
-  the value increments ($+$), by $1$. Similarly for $b$ but the value increases
-  by $2$ every iteration.  Since $c$ is evaluated outside the loop its value
-  does not change.
+  The \scev{} of $a$ shows that its initial value is $0$ and every iteration the
+  value linearly increments $+$ by $1$.  Similarly, the initial value of $b$ is
+  $0$ and is incremented every iteration by $2$.  Since $c$ is evaluated outside
+  the loop its value does not change.
 
 \item The analysis of the number of iterations \cite{scev} provides a \scev{}
   that represents the number of times a loop is executed.  The number of
