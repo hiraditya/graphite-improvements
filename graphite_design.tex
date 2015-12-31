@@ -1,23 +1,23 @@
-\title{Enabling Polyhedral optimization for wide use}
-
-\abstract{
-  For the past few years graphite framework, which brought polyhedral optimizations
-  to gcc, was largely unmaintained. We made importatnt designed changes and fixed bugs accumulated over
-  the past. The transition from cloog to isl left dead code in multiple places, and made some optimizations
-  redundant. We cleaned up that code, so graphite codebase became smaller after recent changes.
-  We enabled graphite to detect wider range of loops which it can optimize and discard
-  difficult-to-optimize loops in a much faster way. We have also brought demand driven optimization
-  into the graphite framework, since we want it to spend extra time in loops which matters,
-  in the presence of profile information.
-  Demand driven optimization is new approach to optimization: Moving from problem to solution.
-}
+\title{Translating Gimple IR to/from Polyhedral representation}
 
 \section{Goals}
-Enabling widespread usage of graphite by having one flag to the end user.
-Fixing accumulated bugs.
-Substantial improvements on several benchmarks with no significant regression.
-Propose enabling of graphite by default under one optimization flag.
-Limiting the number of computations to reduce compile time.
+\subsection{Gimple to isl}
+\begin{enumerate}
+    \item Translating Gimple IR to isl's polyhedral representation without modifying Gimple.
+    \item Exposing cross basic block scalar dependencies to isl.
+    \item Computing the iteration domain, building constraints/conditions of SCoP.
+    \item Computing the schedule tree from the Gimple IR.
+    \item Computing data references and theier dependencies.
+\end{enumerate}
+
+\subsection{Gimple to isl}
+\begin{enumerate}
+    \item Tagging parallel code from data dependence.
+    \item Generating Gimple in SSA.
+    \item Details about PHI nodes and their classification pertaining to codegen.
+    \item Issues and design decisions e.g., ambiguities in codegen, bailing out in many cases, dealing with loop unrolled code.
+    \item Discuss the cases where it might not be possible to generate code at all.
+\end{enumerate}
 
 \section{Internal parameters}
 A parameter in SCoP is defined as any operand which is defined outside. These are first order parameters.
