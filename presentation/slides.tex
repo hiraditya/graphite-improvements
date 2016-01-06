@@ -18,12 +18,63 @@
 
 \frame{\frametitle{SCoP Detection (Introduction) }
   \begin{itemize}
-    \item Single Entry Single Exit (SESE) regions.
+    \item Single Entry Single Exit (SESE) regions as Static Controlled Parts (SCoP).
     \item Loop Tree data structure.
   \end{itemize}
 }
 
-\frame{\frametitle{Outline of the presentation}
+\frame{\frametitle{SCoP Detection (Other implementations) }
+  \begin{itemize}
+    \item Previous graphite SCoP detection based on CFG and DOM.
+    \item Polly's SCoP detection based on analysis of SESE regions.
+  \end{itemize}
+}
+
+\frame{\frametitle{SCoP Detection (New Algorithm) }
+\begin{figure}
+\begin{verbatim}
+// Recurse on the loop.inner.
+sese build_scop_depth (sese s1, loop l):
+  s1 = build_scop_depth (s1, l.inner)
+  sese s2 = merge_sese (s1, get_sese (l))
+  if (s2 is an invalid scop)
+    {
+      // s1 might be a valid scop, so return it
+      // and start analyzing from the adjacent loop.
+      build_scop_depth (invalid_sese, l.next)
+      return s1
+    }
+  if (l is an invalid scop in s2)
+    return build_scop_depth (invalid_sese, l.next)
+  return build_scop_breadth (s2, l)
+
+\end{verbatim}
+\end{figure}
+\begin{figure}
+\begin{verbatim}
+// Recurse on loop.next.
+sese build_scop_breadth (sese s1, loop l):
+  sese s2 = build_scop_depth (invalid_sese, l.next)
+  if (s2 is an invalid scop)
+    {
+      if (s1 is a valid scop)
+        add_scop (s1)
+      return s1
+    }
+  sese combined = merge_sese (s1, s2)
+  if (combined is a valid scop)
+    s1 = combined
+  else
+    add_scop (s2)
+  if (s1 is a valid scop)
+    add_scop (s1)
+  return s1
+\end{verbatim}
+\end{figure}
+}
+} 
+
+frame{\frametitle{Outline of the presentation}
   \begin{itemize}
     \item Introduction
     \item Details of algorithm
