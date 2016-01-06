@@ -11,44 +11,45 @@
 \title{\SCoP{} Detection: A Fast Algorithm for Industrial Compilers}
 \author{Sebastian Pop and Aditya Kumar}
 \institute{SARC: Samsung Austin R\&D Center}
-\date{May 5, 2015}
+\date{Jan 19, 2016}
 %\date{\today}
 
 \frame{\titlepage}
 
-\frame{\frametitle{Auto-vectorization (Introduction) }
+\frame{\frametitle{SCoP Detection (Introduction) }
   \begin{itemize}
-  \item What is Vectorization
-  \item Forms of Vectorization.
+    \item Single Entry Single Exit (SESE) regions.
+    \item Loop Tree data structure.
   \end{itemize}
 }
 
-\frame{\frametitle{Analysis of Auto-vectorization}
+\frame{\frametitle{Outline of the presentation}
   \begin{itemize}
-  \item Does vectorization improve performance?
-  \item Internals of hardware.
+    \item Introduction
+    \item Details of algorithm
+    \item Experimental results
+    \item Conclusion and future work
   \end{itemize}
 }
 
-\frame{\frametitle{Open source implementations of auto-vectorization}
+\frame{\frametitle{Conclusion and Future work}
+  Conclusion
   \begin{itemize}
-  \item GCC 
-    \begin{itemize}
-    \item Straight line
-    \item Graphite
-    \end{itemize}
-  \item LLVM 
-    \begin{itemize}
-    \item Straight line 
-    \item Nadav's vectorizer
-    \item Polly
-    \end{itemize}
+    \item New algorithm for SCoP detection.
+    \item Comparative analysis to show compile time improvement.
+  \end{itemize}
+
+  Future Work
+  \begin{itemize}
+    \item SCoP detection should drive polyhedral optimization. 
+    \item Using profile information to tune the SCoP detection.
   \end{itemize}
 }
 
-\frame{\frametitle{Vectorization with profile feedback}
+
+\frame{\frametitle{Experimental results}
   \begin{itemize}
- \item 
+    \item Improvements on polybench.
   \end{itemize}
 }
 
