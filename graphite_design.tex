@@ -8,6 +8,7 @@
 \usepackage{auto-pst-pdf}
 \usepackage{etoolbox}
 \usepackage{flushend}
+\usepackage{needspace}
 
 \makeatletter
 \preto{\@verbatim}{\topsep=1pt \partopsep=0pt}
@@ -474,6 +475,7 @@ EndIf -> AfterSESE
 \label{fig:maximality}
 \end{figure}
 
+\needspace{5\baselineskip}
 \section{A new faster \SCoP{} detection}
 \label{sec:new-SCoP-detection}
 The new algorithm for \SCoP{} detection works by induction on the structure of the
