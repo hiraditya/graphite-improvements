@@ -30,8 +30,7 @@
   \end{itemize}
 }
 
-\frame{\frametitle{SCoP Detection (New Algorithm) }
-\begin{figure}
+\begin{frame}[fragile]{SCoP Detection (New Algorithm) }
 \begin{verbatim}
 // Recurse on the loop.inner.
 sese build_scop_depth (sese s1, loop l):
@@ -49,8 +48,9 @@ sese build_scop_depth (sese s1, loop l):
   return build_scop_breadth (s2, l)
 
 \end{verbatim}
-\end{figure}
-\begin{figure}
+\end{frame}
+
+\begin{frame}[fragile]{SCoP Detection (New Algorithm) }
 \begin{verbatim}
 // Recurse on loop.next.
 sese build_scop_breadth (sese s1, loop l):
@@ -70,11 +70,9 @@ sese build_scop_breadth (sese s1, loop l):
     add_scop (s1)
   return s1
 \end{verbatim}
-\end{figure}
-}
-} 
+\end{frame}
 
-frame{\frametitle{Outline of the presentation}
+\frame{\frametitle{Outline of the presentation}
   \begin{itemize}
     \item Introduction
     \item Details of algorithm
