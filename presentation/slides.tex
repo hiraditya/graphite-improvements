@@ -16,51 +16,55 @@
 
 \frame{\titlepage}
 
-\frame{\frametitle{SCoP Detection (Introduction) }
+\frame{\frametitle{SCoP Detection (Introduction)}
   \begin{itemize}
-    \item Single Entry Single Exit (SESE) regions as Static Controlled Parts (SCoP).
-    \item Loop Tree data structure.
+  \item Single Entry Single Exit (SESE) regions as Static Controlled Parts (SCoP).
+  \item Loop Tree data structure.
   \end{itemize}
 }
 
-\frame{\frametitle{SCoP Detection (Other implementations) }
+\frame{\frametitle{SCoP Detection (Other implementations)}
   \begin{itemize}
-    \item Previous graphite SCoP detection based on CFG and DOM.
-    \item Polly's SCoP detection based on analysis of SESE regions.
+  \item Previous graphite SCoP detection based on CFG and DOM.
+  \item Polly's SCoP detection based on analysis of SESE regions.
   \end{itemize}
 }
 
-\begin{frame}[fragile]{SCoP Detection (New Algorithm) }
+\frame{\frametitle{SCoP Detection (New Algorithm)}
+  \begin{itemize}
+  \item Focus on structure of natural loops first rather than validity of each statement.
+  \item Start with the node of a loop tree rather than beginning of the program.
+  \end{itemize}
+}
+
+\begin{frame}[fragile]{SCoP Detection (New Algorithm)}
 \begin{verbatim}
 // Recurse on the loop.inner.
 sese build_scop_depth (sese s1, loop l):
   s1 = build_scop_depth (s1, l.inner)
   sese s2 = merge_sese (s1, get_sese (l))
-  if (s2 is an invalid scop)
-    {
+  if (s2 is an invalid scop) {
       // s1 might be a valid scop, so return it
       // and start analyzing from the adjacent loop.
       build_scop_depth (invalid_sese, l.next)
       return s1
-    }
+  }
   if (l is an invalid scop in s2)
     return build_scop_depth (invalid_sese, l.next)
   return build_scop_breadth (s2, l)
-
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{SCoP Detection (New Algorithm) }
+\begin{frame}[fragile]{SCoP Detection (New Algorithm)}
 \begin{verbatim}
 // Recurse on loop.next.
 sese build_scop_breadth (sese s1, loop l):
   sese s2 = build_scop_depth (invalid_sese, l.next)
-  if (s2 is an invalid scop)
-    {
+  if (s2 is an invalid scop) {
       if (s1 is a valid scop)
         add_scop (s1)
       return s1
-    }
+  }
   sese combined = merge_sese (s1, s2)
   if (combined is a valid scop)
     s1 = combined
@@ -72,33 +76,50 @@ sese build_scop_breadth (sese s1, loop l):
 \end{verbatim}
 \end{frame}
 
+\frame{\frametitle{When is an \SESE{} region a valid \SCoP{?}}
+An \SESE{} region is regarded as a valid \SCoP{} when it satisfies the following
+conditions:
+\begin{enumerate}
+\item The entry basic block should have only one predecessor and the exit
+  basic block should have only one successor (i.e., an \SESE{}).
+\item The entry should dominate the exit.
+\item The exit should post-dominate the entry.
+\item All the loops in the \SESE{} should have single exits.
+\item The scalar evolution of all memory accesses and conditional expressions
+  should be affine.
+\item All the statements inside the region should be representable in the
+  polyhedral model.
+\item The induction variables of all the loops should be of (or convertible to)
+  signed integer.
+\end{enumerate}
+}
+
 \frame{\frametitle{Outline of the presentation}
   \begin{itemize}
-    \item Introduction
-    \item Details of algorithm
-    \item Experimental results
-    \item Conclusion and future work
+  \item Introduction
+  \item Details of algorithm
+  \item Experimental results
+  \item Conclusion and future work
   \end{itemize}
 }
 
 \frame{\frametitle{Conclusion and Future work}
   Conclusion
   \begin{itemize}
-    \item New algorithm for SCoP detection.
-    \item Comparative analysis to show compile time improvement.
+  \item New algorithm for SCoP detection.
+  \item Comparative analysis to show compile time improvement.
   \end{itemize}
 
   Future Work
   \begin{itemize}
-    \item SCoP detection should drive polyhedral optimization. 
-    \item Using profile information to tune the SCoP detection.
+  \item SCoP detection should drive polyhedral optimization.
+  \item Using profile information to tune the SCoP detection.
   \end{itemize}
 }
 
-
 \frame{\frametitle{Experimental results}
   \begin{itemize}
-    \item Improvements on polybench.
+  \item Improvements on polybench.
   \end{itemize}
 }
 
