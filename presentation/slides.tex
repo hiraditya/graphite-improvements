@@ -1,4 +1,11 @@
 \documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{graphviz}
+\usepackage{tikz}
+%\usepackage{auto-pst-pdf}
+\usepackage{dot2texi}
+
 \begin{document}
 \def \SCoP {SCoP}
 \def \GCC {GCC}
@@ -16,12 +23,75 @@
 
 \frame{\titlepage}
 
+\frame{\frametitle{Outline of the presentation}
+  \begin{itemize}
+  \item Introduction
+  \item Details of algorithm
+  \item Experimental results
+  \item Conclusion and future work
+  \end{itemize}
+}
+
 \frame{\frametitle{SCoP Detection (Introduction)}
   \begin{itemize}
   \item Single Entry Single Exit (SESE) regions as Static Controlled Parts (SCoP).
   \item Loop Tree data structure.
   \end{itemize}
 }
+
+\begin{frame}[fragile]{Loop Tree Representation of Program}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \begin{column}{.4\textwidth}
+      Loop Tree
+        \begin{tikzpicture}[scale=0.5]
+          \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+            digraph LT{
+              {rank = same; Loop2; Loop3;}
+              FunctionEntry -> Loop1 [label="       inner"];
+              Loop1 -> Loop2 [label="       inner"];
+              Loop2 -> Loop3 [label=" next "];
+            }
+          \end{dot2tex}
+        \end{tikzpicture}
+    \end{column}%
+    \begin{column}{0.55\textwidth}
+      Program
+      \begin{verbatim}
+      void foo(int N)
+      {
+        // Loop1
+        for (i = 0; i < N; ++i) {
+          stmt1;
+          // Loop2
+          for (j = 0; j < N; ++j)
+            stmt2;
+          // Loop3
+          for (k = 0; k < P; ++k)
+            stmt3;
+        }
+      }
+      \end{verbatim}
+    \end{column}%
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{SESE Region}
+\begin{tikzpicture}[scale=0.5]
+\begin{dot2tex}[dot,tikz,codeonly,styleonly]
+digraph G{
+BeforeSESE -> IfCondition;
+IfCondition -> TrueRegion;
+IfCondition -> LoopHeader;
+LoopHeader -> LoopLatch;
+LoopLatch -> LoopHeader;
+LoopHeader -> EndIf;
+TrueRegion -> EndIf;
+EndIf -> AfterSESE;
+}
+\end{dot2tex}
+\end{tikzpicture}
+\end{frame}
+
 
 \frame{\frametitle{SCoP Detection (Other implementations)}
   \begin{itemize}
@@ -94,13 +164,43 @@ conditions:
 \end{enumerate}
 }
 
-\frame{\frametitle{Outline of the presentation}
-  \begin{itemize}
-  \item Introduction
-  \item Details of algorithm
-  \item Experimental results
-  \item Conclusion and future work
-  \end{itemize}
+\frame{\frametitle{Experimental Results}
+\begin{table}[h!]
+  \caption{\SCoP{} metrics on Polybench.}
+  \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+      \hline
+      Metric                   	& New  & Old  & Polly  \\
+      \hline
+      \SCoP{s}          		& 34   & 189  & 30     \\
+      Max loops/\SCoP{}           	& 17   & 8    & 11     \\
+      Min loops/\SCoP{}           	& 2    & 1    & 2      \\
+      \SCoP{s} with min loops/\SCoP{} & 7    & 109  & 3      \\
+      Loops in \SCoP{s} 		& 207  & 316  & 155    \\
+      Loops/\SCoP{}               	& 6.09 & 2.59 & 5.17   \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \label{tab:scop-metrics}
+\end{table}
+}
+
+\frame{\frametitle{Experimental Results}
+\begin{table}[h!]
+  \caption{Overall number of instructions spent in \SCoP{} detection.}
+  \begin{center}
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+      \hline
+      Benchmark  & Old      & New        & Speedup & Main       & Old \% & New \%  \\
+      \hline
+      Polybench  & $3.3e^8$ & $4.8e^8$   & $0.7$   & $2.5e^{10}$ & $1.4$  & $1.9$   \\
+      Tramp3d-v4 & $1.8e^9$ & $6.2e^8$   & $2.8$   & $1.9e^{11}$ & $7.0$  & $0.3$   \\
+      \GCC{} 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.1e^{12}$ & $0.24$ & $0.01$  \\
+      \hline
+    \end{tabular}}
+  \end{center}
+\end{table}
 }
 
 \frame{\frametitle{Conclusion and Future work}
@@ -117,10 +217,5 @@ conditions:
   \end{itemize}
 }
 
-\frame{\frametitle{Experimental results}
-  \begin{itemize}
-  \item Improvements on polybench.
-  \end{itemize}
-}
 
 \end{document}

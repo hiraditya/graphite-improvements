@@ -2,4 +2,4 @@
 # apt-get install latex-beamer
 # pdflatex
 
-pdflatex slides.tex
+pdflatex -shell-escape slides.tex
