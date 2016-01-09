@@ -41,6 +41,8 @@
 
 \begin{frame}[fragile]{Loop Tree Representation of Program}
   \begin{columns}[T,onlytextwidth] % align columns
+
+%%%% -------------- Loop Tree -----------------
     \begin{column}{.4\textwidth}
       Loop Tree
         \begin{tikzpicture}[scale=0.5]
@@ -54,16 +56,19 @@
           \end{dot2tex}
         \end{tikzpicture}
     \end{column}%
+
+%%%% -------------- Program -----------------
     \begin{column}{0.55\textwidth}
       Program
       \begin{verbatim}
-      void foo(int N)
+      int foo(int N, int M, int P)
       {
+        int i, j, k;
         // Loop1
         for (i = 0; i < N; ++i) {
           stmt1;
           // Loop2
-          for (j = 0; j < N; ++j)
+          for (j = 0; j < M; ++j)
             stmt2;
           // Loop3
           for (k = 0; k < P; ++k)
@@ -72,6 +77,7 @@
       }
       \end{verbatim}
     \end{column}%
+
   \end{columns}
 \end{frame}
 
