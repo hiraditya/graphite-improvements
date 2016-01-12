@@ -5,6 +5,11 @@
 \usepackage{tikz}
 %\usepackage{auto-pst-pdf}
 \usepackage{dot2texi}
+\usepackage{listings}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
 
 \begin{document}
 \def \SCoP {SCoP}
@@ -21,205 +26,431 @@
 \date{Jan 19, 2016}
 %\date{\today}
 
+\definecolor{myblue}{rgb}{0.0, 0.0, 0.5}
+\definecolor{myred}{rgb}{0.5, 0.0, 0.0}
+\definecolor{mygreen}{rgb}{0.0, 0.5, 0.0}
+\lstset{language=C++,
+  basicstyle=\ttfamily,
+  keywordstyle=\color{myblue}\ttfamily,
+  stringstyle=\color{myred}\ttfamily,
+  commentstyle=\color{mygreen}\ttfamily,
+  morecomment=[l][\color{magenta}]{\#}
+}
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+
 \frame{\titlepage}
 
-\frame{\frametitle{Outline of the presentation}
+\frame{\frametitle{What is a SCoP?}
   \begin{itemize}
-  \item Introduction
-  \item Details of algorithm
-  \item Experimental results
-  \item Conclusion and future work
+  \item SCoPs = Static Control Parts
+    \pause
+  \item ACLs =
+    \pause
+    Affine Control Loops
+  \item PWACs =
+    \pause
+    Parts With Affine Control, rhymes with quacks :-)
   \end{itemize}
+  regions of code that can be represented in the Polyhedral Model
 }
 
-\frame{\frametitle{SCoP Detection (Introduction)}
-  \begin{itemize}
-  \item Single Entry Single Exit (SESE) regions as Static Controlled Parts (SCoP).
-  \item Loop Tree data structure.
-  \end{itemize}
-}
-
-\begin{frame}[fragile]{Loop Tree Representation of Program}
+\begin{frame}[fragile]{Step 1: accept natural loops}
   \begin{columns}[T,onlytextwidth] % align columns
+    \column{.2\textwidth}
+    \begin{block}{\small Natural loop}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            {rank = same; a; x;}
+            e -> a -> x;
+            a -> b -> a [fontcolor=red];
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
 
-%%%% -------------- Loop Tree -----------------
-    \begin{column}{.4\textwidth}
-      Loop Tree
-        \begin{tikzpicture}[scale=0.5]
-          \begin{dot2tex}[dot,tikz,codeonly,styleonly]
-            digraph LT{
-              {rank = same; Loop2; Loop3;}
-              FunctionEntry -> Loop1 [label="       inner"];
-              Loop1 -> Loop2 [label="       inner"];
-              Loop2 -> Loop3 [label=" next "];
-            }
-          \end{dot2tex}
-        \end{tikzpicture}
-    \end{column}%
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+    \pause
+    \column{.2\textwidth}
+    \begin{block}{\small Nested loops}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            {rank = same; a; x;}
+            e -> a -> x;
+            a -> b -> d -> a;
+            b -> c -> b;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
 
-%%%% -------------- Program -----------------
-    \begin{column}{0.55\textwidth}
-      Program
-      \begin{verbatim}
-      int foo(int N, int M, int P)
-      {
-        int i, j, k;
-        // Loop1
-        for (i = 0; i < N; ++i) {
-          stmt1;
-          // Loop2
-          for (j = 0; j < M; ++j)
-            stmt2;
-          // Loop3
-          for (k = 0; k < P; ++k)
-            stmt3;
-        }
-      }
-      \end{verbatim}
-    \end{column}%
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+    \pause
+    \column{.2\textwidth}
+    \begin{block}{\small Irreducible}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            {rank = same; a; x;}
+            e -> a -> x;
+            a -> b -> a;
+            a -> c -> a;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
 
+      {\small \color{myred} not a SCoP: ambiguous iteration order}
+    \end{block}
+    \pause
+    \column{.2\textwidth}
+    \begin{block}{\small Irreducible}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            {rank = same; a; x;}
+            e -> a -> x;
+            a -> b -> a;
+            b -> c -> b;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
+
+      {\small \color{myred} not a SCoP: ambiguous iteration order}
+    \end{block}
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{SESE Region}
-\begin{tikzpicture}[scale=0.5]
-\begin{dot2tex}[dot,tikz,codeonly,styleonly]
-digraph G{
-BeforeSESE -> IfCondition;
-IfCondition -> TrueRegion;
-IfCondition -> LoopHeader;
-LoopHeader -> LoopLatch;
-LoopLatch -> LoopHeader;
-LoopHeader -> EndIf;
-TrueRegion -> EndIf;
-EndIf -> AfterSESE;
+\begin{frame}[fragile]{Natural Loop Tree}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{0.7\textwidth}
+    \begin{lstlisting}
+int foo(int N)
+{
+ int i, j, k;
+ for(i=0; i<N; ++i){//Loop1
+  stmt1;
+  for (j=0; j<N; ++j)//Loop2
+   stmt2;
+  for (k=0; k<N; ++k)//Loop3
+   stmt3;
+ }
 }
-\end{dot2tex}
-\end{tikzpicture}
+    \end{lstlisting}
+    \pause
+    \column{.3\textwidth}
+    \begin{tikzpicture}[scale=0.7]
+      % set node style
+      \tikzstyle{n} = [draw,shape=circle,minimum size=2em,
+        inner sep=0pt,fill=red!20]
+      \begin{dot2tex}[dot,tikz,codeonly,styleonly,options=-s -tmath]
+        digraph G  {
+          node [style="n"];
+          {rank = same; Loop_2; Loop_3;}
+          Function -> Loop_1 [label=" inner"];
+          Loop_1 -> Loop_2 [label=" inner", orientation=90];
+          Loop_2 -> Loop_3 [label="next"];
+        }
+      \end{dot2tex}
+    \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Step 2: accept structured control flow}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{.3\textwidth}
+    \begin{block}{\small simple condition}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            e -> c -> a ->x;
+            c -> b -> x;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
+
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+    \pause
+    \column{.3\textwidth}
+    \begin{block}{\small nested conditions}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            e -> c -> b -> x;
+            c -> a -> f -> x;
+            a -> d -> x;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
+
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+    \pause
+    \column{.3\textwidth}
+    \begin{block}{\small unstructured}
+      \begin{tikzpicture}[scale=0.4]
+        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+          digraph G {
+            e -> c -> b -> d -> x;
+            c -> a -> f -> x;
+            a -> d;
+          }
+        \end{dot2tex}
+      \end{tikzpicture}
+
+      {\small \color{myred} not a SCoP: control dependences are hard}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Step 3: check for side-effects}
+  \begin{itemize}
+  \item function calls
+  \item inline assembly
+  \item volatile operations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Step 4: affine scalar evolutions}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{.6\textwidth}
+    \begin{block}{\small Linear}
+      \begin{lstlisting}
+i0 = phi_l1(0, i1)
+// i0={0,+,1}_l1
+i1 = i0 + 1
+// i1={1,+,1}_l1
+      \end{lstlisting}
+
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+    \pause
+    \begin{block}{\small Non-linear} 
+      \begin{lstlisting}
+j2 = phi_l1(3, j3)
+j3 = j2 + i1
+// j2={3,+,{1,+,1}_l1}_l1
+      \end{lstlisting}
+      {\small \color{myred} not a SCoP: polynomial of degree 2}
+    \end{block}
+    \pause
+    \column{.4\textwidth}
+    \begin{block}{\small Non-linear} 
+      \begin{lstlisting}
+k4 = phi_l2(4, k5)
+k5 = k4 * 2
+// k4={4,*,2}_l2
+      \end{lstlisting}
+      {\small \color{myred} not a SCoP: exponential}
+    \end{block}
+
+    \vspace{.5cm}
+    \pause
+    \begin{block}{\small analyzed expressions}
+      \begin{itemize}
+      \item branch conditions
+      \item memory accesses
+      \end{itemize}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Step 5: delinearize memory access functions}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{.6\textwidth}
+    \begin{block}{\small Linear access functions}
+      \begin{lstlisting}
+A[100*i + 400*j]
+B[i][j]
+      \end{lstlisting}
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+
+    \vspace{.7cm}
+    \pause
+    \begin{block}{\small Non-linear access functions} 
+      \begin{lstlisting}
+C[i*i]
+D[4*N*M*i + 4*M*j + 4*k]
+E[4*i*N + 4*j]
+      \end{lstlisting}
+
+      {\small \color{myred} not a SCoP}
+    \end{block}
+    \pause
+    \column{.4\textwidth}
+    \begin{block}{\small delinearization}
+      \begin{itemize}
+      \item recognize array multi-dimensions
+      \item compute linear access functions
+      \end{itemize}
+    \end{block}
+    \pause
+    \begin{block}{\small delinearized access functions}
+      \begin{lstlisting}
+int D[][N][M];
+D[i][j][k]
+
+int E[][N];
+E[i][j]
+      \end{lstlisting}
+
+      {\small \color{myblue} maybe SCoP}
+    \end{block}
+  \end{columns}
 \end{frame}
 
 
-\frame{\frametitle{SCoP Detection (Other implementations)}
+\begin{frame}[fragile]{Overall picture: SCoP detection}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+        digraph G {
+          "Natural loops"
+          -> "Structured control flow"
+          -> "no side-effects"
+          -> "affine branch conditions"
+          -> "affine memory accesses";
+        }
+      \end{dot2tex}
+    \end{tikzpicture}
+    \pause
+    \column{.5\textwidth}
+    Required analyses:
+    \begin{itemize}
+    \item natural loops tree
+    \item (post-)dominators tree
+    \item alias analysis
+    \item scalar evolution analysis
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\frame{\frametitle{Detecting SCoPs by induction on Natural Loops Tree}
   \begin{itemize}
-  \item Previous graphite SCoP detection based on CFG and DOM.
-  \item Polly's SCoP detection based on analysis of SESE regions.
+  \item Start with a loop in the natural loops tree \\
+    rather than the root of the CFG
+    \vspace{1cm}
+    \pause
+  \item Focus on structure of natural loops \\
+    before the validity of each statement
   \end{itemize}
 }
 
-\frame{\frametitle{SCoP Detection (New Algorithm)}
+\begin{frame}[fragile]{Example: Induction on Natural Loops Tree}
+  \begin{tikzpicture}[scale=0.8]
+    % set node style
+    \tikzstyle{n} = [draw,shape=circle,minimum size=2em,
+      inner sep=0pt,fill=red!20]
+    \begin{dot2tex}[dot,tikz,codeonly,styleonly,options=-s -tmath]
+      digraph G  {
+        node [style="n"];
+        {rank = same; Loop_2; Loop_3;}
+        Function -> Loop_1 [label="inner"];
+        Loop_1 -> Loop_2 [label="inner", orientation=90];
+        Loop_2 -> Loop_3 [label="next"];
+      }
+    \end{dot2tex}
+    \begin{pgfonlayer}{background}
+      \pause
+      \draw[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_2.center) -- (Loop_2.east);
+      \pause
+      \draw[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_3.west) -- (Loop_3.center);
+      \pause
+      \draw[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_2.center) -- (Loop_3.center);
+      \pause
+      \draw[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_1.center) -- (Loop_1.south);
+      \pause
+      \draw[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_1.center) -- (Loop_2.west) -- (Loop_3.east) -- (Loop_1.center);
+      \fill[rounded corners=2em,line width=3em,blue!30,cap=round]
+      (Loop_1.center) -- (Loop_2.center) -- (Loop_3.center);
+    \end{pgfonlayer}
+  \end{tikzpicture}
+\end{frame}
+
+\frame{\frametitle{Other implementations of SCoP Detection}
   \begin{itemize}
-  \item Focus on structure of natural loops first rather than validity of each statement.
-  \item Start with the node of a loop tree rather than beginning of the program.
+  \item Previous graphite SCoP detection based on CFG and DOM \\
+    (misses the structure of loops)
+
+    \vspace{1cm}
+    \pause
+
+  \item Polly's SCoP detection based on structure of SESE regions \\
+    (full function body analysis even without interesting loops)
+
+    \vspace{1cm}
+    \pause
+
+  \item Pet, Rose, other source-to-source compilers: SCoP detection \\
+    based on the AST of a specific programming language
   \end{itemize}
 }
 
-\begin{frame}[fragile]{SCoP Detection (New Algorithm)}
-\begin{verbatim}
-// Recurse on the loop.inner.
-sese build_scop_depth (sese s1, loop l):
-  s1 = build_scop_depth (s1, l.inner)
-  sese s2 = merge_sese (s1, get_sese (l))
-  if (s2 is an invalid scop) {
-      // s1 might be a valid scop, so return it
-      // and start analyzing from the adjacent loop.
-      build_scop_depth (invalid_sese, l.next)
-      return s1
-  }
-  if (l is an invalid scop in s2)
-    return build_scop_depth (invalid_sese, l.next)
-  return build_scop_breadth (s2, l)
-\end{verbatim}
+\begin{frame}[fragile]{Experimental Results}
+  \begin{columns}[T,onlytextwidth] % align columns
+    \column{.4\textwidth}
+    \begin{block}{\small Compilation time overhead}
+      \resizebox{\linewidth}{!}{
+        \begin{tabular}{|c|c|c|}
+          \hline
+          Benchmark  & Old \% & New \%  \\
+          \hline
+          Polybench  & $1.4$  & $1.9$   \\
+          Tramp3d-v4 & $7.0$  & $0.3$   \\
+          \GCC{} 6.0 & $0.24$ & $0.01$  \\
+          \hline
+        \end{tabular}
+      }
+    \end{block}
+
+    \vspace{2cm} 
+    \begin{block}{\small SCoP Metrics on Polybench}
+      \resizebox{\linewidth}{!}{
+        \begin{tabular}{|c|c|c|c|}
+          \hline
+          SCoP Metric   & Old  & New  & Polly  \\
+          \hline
+          Loops/\SCoP{} & 2.59 & 6.09 & 5.17   \\
+          \hline
+        \end{tabular}
+      }
+    \end{block}
+
+    \column{.6\textwidth}
+      \begin{center}
+        \resizebox{.9\linewidth}{!}{\input{../gcc/speedup}}
+        \vspace{1cm}
+        \resizebox{.9\linewidth}{!}{\input{../polybench/speedup}}
+      \end{center}
+  \end{columns}
 \end{frame}
-
-\begin{frame}[fragile]{SCoP Detection (New Algorithm)}
-\begin{verbatim}
-// Recurse on loop.next.
-sese build_scop_breadth (sese s1, loop l):
-  sese s2 = build_scop_depth (invalid_sese, l.next)
-  if (s2 is an invalid scop) {
-      if (s1 is a valid scop)
-        add_scop (s1)
-      return s1
-  }
-  sese combined = merge_sese (s1, s2)
-  if (combined is a valid scop)
-    s1 = combined
-  else
-    add_scop (s2)
-  if (s1 is a valid scop)
-    add_scop (s1)
-  return s1
-\end{verbatim}
-\end{frame}
-
-\frame{\frametitle{When is an \SESE{} region a valid \SCoP{?}}
-An \SESE{} region is regarded as a valid \SCoP{} when it satisfies the following
-conditions:
-\begin{enumerate}
-\item The entry basic block should have only one predecessor and the exit
-  basic block should have only one successor (i.e., an \SESE{}).
-\item The entry should dominate the exit.
-\item The exit should post-dominate the entry.
-\item All the loops in the \SESE{} should have single exits.
-\item The scalar evolution of all memory accesses and conditional expressions
-  should be affine.
-\item All the statements inside the region should be representable in the
-  polyhedral model.
-\item The induction variables of all the loops should be of (or convertible to)
-  signed integer.
-\end{enumerate}
-}
-
-\frame{\frametitle{Experimental Results}
-\begin{table}[h!]
-  \caption{\SCoP{} metrics on Polybench.}
-  \begin{center}
-    \begin{tabular}{|c|c|c|c|}
-      \hline
-      Metric                   	& New  & Old  & Polly  \\
-      \hline
-      \SCoP{s}          		& 34   & 189  & 30     \\
-      Max loops/\SCoP{}           	& 17   & 8    & 11     \\
-      Min loops/\SCoP{}           	& 2    & 1    & 2      \\
-      \SCoP{s} with min loops/\SCoP{} & 7    & 109  & 3      \\
-      Loops in \SCoP{s} 		& 207  & 316  & 155    \\
-      Loops/\SCoP{}               	& 6.09 & 2.59 & 5.17   \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \label{tab:scop-metrics}
-\end{table}
-}
-
-\frame{\frametitle{Experimental Results}
-\begin{table}[h!]
-  \caption{Overall number of instructions spent in \SCoP{} detection.}
-  \begin{center}
-    \resizebox{\linewidth}{!}{
-    \begin{tabular}{|c|c|c|c|c|c|c|}
-      \hline
-      Benchmark  & Old      & New        & Speedup & Main       & Old \% & New \%  \\
-      \hline
-      Polybench  & $3.3e^8$ & $4.8e^8$   & $0.7$   & $2.5e^{10}$ & $1.4$  & $1.9$   \\
-      Tramp3d-v4 & $1.8e^9$ & $6.2e^8$   & $2.8$   & $1.9e^{11}$ & $7.0$  & $0.3$   \\
-      \GCC{} 6.0    & $1.5e^{10}$ & $6.7e^8$ & $22.6$  & $6.1e^{12}$ & $0.24$ & $0.01$  \\
-      \hline
-    \end{tabular}}
-  \end{center}
-\end{table}
-}
 
 \frame{\frametitle{Conclusion and Future work}
   Conclusion
   \begin{itemize}
-  \item New algorithm for SCoP detection.
-  \item Comparative analysis to show compile time improvement.
+  \item New faster algorithm for SCoP detection
+  \item Enable polyhedral optimization in industrial compilers
   \end{itemize}
 
+  \vspace{1cm}
+  
   Future Work
   \begin{itemize}
-  \item SCoP detection should drive polyhedral optimization.
-  \item Using profile information to tune the SCoP detection.
+  \item SCoP detection to drive polyhedral optimization
+  \item Use profile data to guide and select polyhedral transforms
   \end{itemize}
 }
 
