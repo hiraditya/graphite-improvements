@@ -46,8 +46,8 @@
 \frame{\titlepage}
 
 \frame{\frametitle{What is a SCoP?}
-  regions of code that can be represented in the Polyhedral Model \\
-  we use isl (the integer set library) for polyhedral scheduling
+  Regions of code that can be represented in the Polyhedral Model. \\
+  We use isl (the integer set library) for scheduling and transforms.
   \begin{itemize}
   \item SCoPs = Static Control Parts
     \pause
@@ -162,55 +162,55 @@ int foo(int N)
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Step 2: accept structured control flow}
-  \begin{columns}[T,onlytextwidth] % align columns
-    \column{.3\textwidth}
-    \begin{block}{\small simple condition}
-      \begin{tikzpicture}[scale=0.4]
-        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
-          digraph G {
-            e -> c -> a ->x;
-            c -> b -> x;
-          }
-        \end{dot2tex}
-      \end{tikzpicture}
+%% \begin{frame}[fragile]{Step 2: accept structured control flow}
+%%   \begin{columns}[T,onlytextwidth] % align columns
+%%     \column{.3\textwidth}
+%%     \begin{block}{\small simple condition}
+%%       \begin{tikzpicture}[scale=0.4]
+%%         \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+%%           digraph G {
+%%             e -> c -> a ->x;
+%%             c -> b -> x;
+%%           }
+%%         \end{dot2tex}
+%%       \end{tikzpicture}
 
-      {\small \color{myblue} maybe SCoP}
-    \end{block}
-    \pause
-    \column{.3\textwidth}
-    \begin{block}{\small nested conditions}
-      \begin{tikzpicture}[scale=0.4]
-        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
-          digraph G {
-            e -> c -> b -> x;
-            c -> a -> f -> x;
-            a -> d -> x;
-          }
-        \end{dot2tex}
-      \end{tikzpicture}
+%%       {\small \color{myblue} maybe SCoP}
+%%     \end{block}
+%%     \pause
+%%     \column{.3\textwidth}
+%%     \begin{block}{\small nested conditions}
+%%       \begin{tikzpicture}[scale=0.4]
+%%         \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+%%           digraph G {
+%%             e -> c -> b -> x;
+%%             c -> a -> f -> x;
+%%             a -> d -> x;
+%%           }
+%%         \end{dot2tex}
+%%       \end{tikzpicture}
 
-      {\small \color{myblue} maybe SCoP}
-    \end{block}
-    \pause
-    \column{.3\textwidth}
-    \begin{block}{\small unstructured}
-      \begin{tikzpicture}[scale=0.4]
-        \begin{dot2tex}[dot,tikz,codeonly,styleonly]
-          digraph G {
-            e -> c -> b -> d -> x;
-            c -> a -> f -> x;
-            a -> d;
-          }
-        \end{dot2tex}
-      \end{tikzpicture}
+%%       {\small \color{myblue} maybe SCoP}
+%%     \end{block}
+%%     \pause
+%%     \column{.3\textwidth}
+%%     \begin{block}{\small unstructured}
+%%       \begin{tikzpicture}[scale=0.4]
+%%         \begin{dot2tex}[dot,tikz,codeonly,styleonly]
+%%           digraph G {
+%%             e -> c -> b -> d -> x;
+%%             c -> a -> f -> x;
+%%             a -> d;
+%%           }
+%%         \end{dot2tex}
+%%       \end{tikzpicture}
 
-      {\small \color{myred} not a SCoP: control dependences are hard}
-    \end{block}
-  \end{columns}
-\end{frame}
+%%       {\small \color{myred} not a SCoP: control dependences are hard}
+%%     \end{block}
+%%   \end{columns}
+%% \end{frame}
 
-\begin{frame}[fragile]{Step 3: check for side-effects}
+\begin{frame}[fragile]{Step 2: check for side-effects}
   \begin{itemize}
   \item function calls
   \item inline assembly
@@ -218,7 +218,7 @@ int foo(int N)
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Step 4: affine scalar evolutions}
+\begin{frame}[fragile]{Step 3: affine scalar evolutions}
   \begin{columns}[T,onlytextwidth] % align columns
     \column{.6\textwidth}
     \begin{block}{\small Linear}
@@ -262,7 +262,7 @@ k5 = k4 * 2
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Step 5: delinearize memory access functions}
+\begin{frame}[fragile]{Step 4: delinearize memory access functions}
   \begin{columns}[T,onlytextwidth] % align columns
     \column{.6\textwidth}
     \begin{block}{\small Linear access functions}
@@ -316,7 +316,6 @@ E[i][j]
         digraph G {
           node [style="n"];
           "Natural loops"
-          -> "Structured control flow?"
           -> "no side-effects?"
           -> "affine branch conditions?"
           -> "affine memory accesses?"
