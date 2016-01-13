@@ -46,7 +46,8 @@
 \frame{\titlepage}
 
 \frame{\frametitle{What is a SCoP?}
-  regions of code that can be represented in the Polyhedral Model
+  regions of code that can be represented in the Polyhedral Model \\
+  we use isl (the integer set library) for polyhedral scheduling
   \begin{itemize}
   \item SCoPs = Static Control Parts
     \pause
@@ -237,7 +238,7 @@ j2 = phi_l1(3, j3)
 j3 = j2 + i1
 // j2={3,+,{1,+,1}_l1}_l1
       \end{lstlisting}
-      {\small \color{myred} not a SCoP: polynomial of degree 2}
+      {\small \color{myred} not an ACL: polynomial of degree 2}
     \end{block}
     \pause
     \column{.4\textwidth}
@@ -247,7 +248,7 @@ k4 = phi_l2(4, k5)
 k5 = k4 * 2
 // k4={4,*,2}_l2
       \end{lstlisting}
-      {\small \color{myred} not a SCoP: exponential}
+      {\small \color{myred} not an ACL: exponential}
     \end{block}
 
     \vspace{.5cm}
@@ -269,7 +270,7 @@ k5 = k4 * 2
 A[100*i + 400*j]
 B[i][j]
       \end{lstlisting}
-      {\small \color{myblue} maybe SCoP}
+      {\small \color{myblue} can represent in isl}
     \end{block}
 
     \vspace{.7cm}
@@ -281,7 +282,7 @@ D[4*N*M*i + 4*M*j + 4*k]
 E[4*i*N + 4*j]
       \end{lstlisting}
 
-      {\small \color{myred} not a SCoP}
+      {\small \color{myred} cannot represent in isl}
     \end{block}
     \pause
     \column{.4\textwidth}
@@ -301,11 +302,10 @@ int E[][N];
 E[i][j]
       \end{lstlisting}
 
-      {\small \color{myblue} maybe SCoP}
+      {\small \color{myblue} can represent in isl}
     \end{block}
   \end{columns}
 \end{frame}
-
 
 \begin{frame}[fragile]{Overall picture: SCoP detection}
   \begin{columns}[T,onlytextwidth] % align columns
