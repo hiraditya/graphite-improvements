@@ -45,9 +45,19 @@
 
 \frame{\titlepage}
 
+\frame{\frametitle{Polyhedral compilation in industrial compilers}
+\begin{itemize}
+\item Goal: enable isl scheduler in GCC at -O3
+\pause
+\item search loops that can benefit from polyhedral compilation
+\item minimal overhead: search as fast as possible
+\item only use existing analysis information
+\item use the right abstract representation
+\end{itemize}
+}
+
 \frame{\frametitle{What is a SCoP?}
-  Regions of code that can be represented in the Polyhedral Model. \\
-  We use isl (the integer set library) for scheduling and transforms.
+  Regions of code that can be represented in the Polyhedral Model.
   \begin{itemize}
   \item SCoPs = Static Control Parts
     \pause
@@ -448,7 +458,7 @@ E[i][j]
   
   Future Work
   \begin{itemize}
-  \item SCoP detection to drive polyhedral optimization
+  \item SCoP detection to drive polyhedral optimization (avoid max SCoPs)
   \item Use profile data to guide and select polyhedral transforms
   \end{itemize}
 }
