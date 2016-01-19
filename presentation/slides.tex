@@ -48,7 +48,8 @@
 \frame{\frametitle{Polyhedral compilation in industrial compilers}
 \begin{itemize}
 \item Goal: enable isl scheduler in GCC at -O3
-\pause
+  \vspace{5mm}
+  \pause
 \item search loops that can benefit from polyhedral compilation
 \item minimal overhead: search as fast as possible
 \item only use existing analysis information
@@ -61,12 +62,8 @@
   \begin{itemize}
   \item SCoPs = Static Control Parts
     \pause
-  \item ACLs =
-    \pause
-    Affine Control Loops
-  \item PWACs =
-    \pause
-    Parts With Affine Control, rhymes with quacks :-)
+  \item ACLs = Affine Control Loops
+  \item PWACs = Parts With Affine Control
   \end{itemize}
 }
 
@@ -458,7 +455,8 @@ E[i][j]
   
   Future Work
   \begin{itemize}
-  \item SCoP detection to drive polyhedral optimization (avoid max SCoPs)
+  \item SCoP detection to drive polyhedral optimization \\
+    (avoid maximal SCoPs)
   \item Use profile data to guide and select polyhedral transforms
   \end{itemize}
 }
